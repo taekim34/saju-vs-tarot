@@ -58,21 +58,14 @@ const BattleEngine = (() => {
     isProcessing = true;
     currentRound++;
 
-    // 라운드 간 쿨다운 (Rate Limit 방지 — 2라운드부터 5초 대기)
-    if (currentRound > 1) {
-      console.log(`⏳ 라운드 간 쿨다운 5초...`);
-      await new Promise(r => setTimeout(r, 5000));
-    }
-
     const topic = TOPICS[currentRound - 1];
 
     // U3: 시그니피케이터 계산 + 타로 드로우
     const significator = TarotEngine.getSignificator(birthYear, gender, topic, dayMasterElement);
     const tarotDraw = TarotEngine.drawForRound(currentRound, significator);
 
-    // AI 해석 요청 (순차 — Rate Limit 방지) + U2: 질문 전달
+    // AI 해석 요청 (순차) + U2: 질문 전달
     const sajuReading = await AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, userQuestion);
-    await new Promise(r => setTimeout(r, 2000)); // 2초 간격
     const tarotReading = await AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion);
 
     const roundData = {

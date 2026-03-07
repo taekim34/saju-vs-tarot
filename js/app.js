@@ -367,7 +367,7 @@
       setTimeout(() => {
         showNextLoadingMsg();
       }, 500);  // fade-out 완료 후 교체
-    }, 3500);
+    }, 5000);
   }
 
   function stopLoadingMessages() {
@@ -398,7 +398,7 @@
       dot.classList.toggle('done', i < status.currentRound);
     });
 
-    battleLoading.style.display = 'flex';
+    battleLoading.style.display = 'block';
     battlePanels.style.display = 'none';
     battleVote.style.display = 'none';
 
@@ -464,7 +464,7 @@
 
   // ===== 최종 결과 표시 (safe DOM) =====
   async function showFinalResult() {
-    battleLoading.style.display = 'flex';
+    battleLoading.style.display = 'block';
     battlePanels.style.display = 'none';
     battleVote.style.display = 'none';
     $('.loading-text').textContent = '최종 판정 중...';

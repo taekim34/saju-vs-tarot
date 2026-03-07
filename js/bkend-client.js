@@ -39,7 +39,7 @@ const BkendClient = (() => {
     }
 
     const result = await response.json();
-    return result.id;
+    return result.data ? result.data.id : result.id;
   }
 
   async function getResult(id) {
