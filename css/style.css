@@ -691,6 +691,71 @@ body {
   border-bottom: none;
 }
 
+/* 공유 결과 — 사용자 정보 */
+.shared-info-box {
+  text-align: center;
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  background: var(--color-surface);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.shared-info-birth {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.shared-info-question {
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  font-style: italic;
+  margin: 6px 0 0;
+}
+
+/* 공유 결과 — 라운드 확장 */
+.shared-round-expanded {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 16px;
+}
+
+.shared-round-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.shared-round-header .round-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.shared-round-header .round-vote {
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+}
+
+/* 공유 결과 — CTA */
+.shared-cta {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+}
+
+.shared-cta-text {
+  font-size: 0.95rem;
+  color: var(--color-text-dim);
+  margin-bottom: 12px;
+}
+
+.shared-cta .btn-primary {
+  width: auto;
+  padding: 12px 40px;
+}
+
 /* 공유 결과 해석 박스 */
 .result-round-item:has(.shared-reading) {
   flex-wrap: wrap;

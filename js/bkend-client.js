@@ -55,7 +55,8 @@ const BkendClient = (() => {
       return null;
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result.data || result;
   }
 
   return { saveResult, getResult };

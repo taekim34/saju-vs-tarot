@@ -112,6 +112,22 @@
 
       showSection('result');
 
+      // 생년월일/질문 정보 표시
+      const birthInfo = data.birth_info || '';
+      const question = data.question || '';
+      if (birthInfo || question) {
+        const infoBox = createEl('div', 'shared-info-box');
+        if (birthInfo) {
+          const parts = birthInfo.split('-');
+          const genderText = parts[3] === 'male' ? '남성' : '여성';
+          infoBox.appendChild(createEl('p', 'shared-info-birth', `${parts[0]}년 ${parts[1]}월 ${parts[2]}일 ${genderText}`));
+        }
+        if (question) {
+          infoBox.appendChild(createEl('p', 'shared-info-question', `"${question}"`));
+        }
+        resultWinner.parentNode.insertBefore(infoBox, resultWinner);
+      }
+
       // 승자
       const winnerIcon = data.winner === 'saju' ? '\u{1F3EE}' : '\u{1F52E}';
       const winnerName = data.winner === 'saju' ? '사주' : '타로';
@@ -134,10 +150,13 @@
       const rounds = data.rounds || [];
       rounds.forEach((r, i) => {
         const voteIcon = r.vote === 'saju' ? '\u{1F3EE}' : '\u{1F52E}';
-        const item = createEl('div', 'result-round-item result-item-enter');
+        const item = createEl('div', 'result-round-item result-item-enter shared-round-expanded');
         item.style.animationDelay = `${i * 0.15}s`;
-        item.appendChild(createEl('div', 'round-label', `R${i + 1}. ${r.topic || ''}`));
-        if (r.vote) item.appendChild(createEl('div', 'round-vote', `내 선택: ${voteIcon}`));
+
+        const header = createEl('div', 'shared-round-header');
+        header.appendChild(createEl('span', 'round-label', `ROUND ${i + 1}. ${r.topic || ''}`));
+        if (r.vote) header.appendChild(createEl('span', 'round-vote', `선택: ${voteIcon}`));
+        item.appendChild(header);
 
         // 사주 해석
         if (r.sajuReading) {
@@ -172,8 +191,13 @@
       }
 
       // 공유 결과 안내
-      const notice = createEl('p', 'shared-notice', '공유된 결과를 보고 있습니다. 나도 해보려면 아래 버튼을 눌러주세요!');
-      notice.style.cssText = 'text-align:center; color:var(--color-text-dim); font-size:0.85rem; margin-top:12px;';
+      const notice = createEl('div', 'shared-cta');
+      notice.appendChild(createEl('p', 'shared-cta-text', '나도 사주 vs 타로 운명의 대결을 해보고 싶다면?'));
+      const ctaBtn = createEl('button', 'btn-primary btn-glow', '나도 해보기');
+      ctaBtn.addEventListener('click', () => {
+        window.location.href = window.location.href.split('?')[0];
+      });
+      notice.appendChild(ctaBtn);
       resultMessage.appendChild(notice);
     } catch (e) {
       console.error('공유 결과 로드 실패:', e);
