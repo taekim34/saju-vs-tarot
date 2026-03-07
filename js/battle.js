@@ -64,9 +64,11 @@ const BattleEngine = (() => {
     const significator = TarotEngine.getSignificator(birthYear, gender, topic, dayMasterElement);
     const tarotDraw = TarotEngine.drawForRound(currentRound, significator);
 
-    // AI 해석 요청 (순차) + U2: 질문 전달
-    const sajuReading = await AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, userQuestion);
-    const tarotReading = await AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion);
+    // AI 해석 요청 (병렬) + U2: 질문 전달
+    const [sajuReading, tarotReading] = await Promise.all([
+      AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, userQuestion),
+      AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion)
+    ]);
 
     const roundData = {
       round: currentRound,

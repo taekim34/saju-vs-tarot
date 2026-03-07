@@ -353,7 +353,7 @@
     loadingCharName.textContent = `${data.icon} ${data.name}`;
     loadingCharName.className = `loading-char-name ${data.type}`;
     loadingCharMsg.textContent = data.message;
-    loadingCharMsg.classList.remove('fade-in');
+    loadingCharMsg.classList.remove('fade-in', 'fade-out');
     void loadingCharMsg.offsetWidth;  // reflow 트리거
     loadingCharMsg.classList.add('fade-in');
   }

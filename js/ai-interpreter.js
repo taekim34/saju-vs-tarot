@@ -27,6 +27,9 @@ const AIInterpreter = (() => {
   async function callAPI(systemPrompt, userPrompt, retries = 2, attempt = 0, maxTokens = null) {
     try {
       const tokenLimit = maxTokens || 4096;
+      const callLabel = systemPrompt.substring(0, 30).replace(/\n/g, ' ');
+      const startTime = performance.now();
+      console.log(`[API] 호출 시작: "${callLabel}..." (maxTokens: ${tokenLimit})`);
       const response = await fetch(getAPIEndpoint(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,8 +65,11 @@ const AIInterpreter = (() => {
       }
 
       const data = await response.json();
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
       const msg = data.choices?.[0]?.message;
       const text = msg?.content || msg?.reasoning || '';
+      const usage = data.usage;
+      console.log(`[API] 호출 완료: "${callLabel}..." ${elapsed}s (입력: ${usage?.prompt_tokens || '?'}토큰, 출력: ${usage?.completion_tokens || '?'}토큰)`);
       return { fallback: false, text };
     } catch (error) {
       console.error('AI API call failed:', error);
@@ -142,7 +148,7 @@ ${sajuResult.summary}
 
 위 분석 데이터에 포함된 십성 배치, 지장간, 12운성, 충/합, 세운, 대운 정보를 모두 활용하여 깊이 있는 해석을 해주세요.`;
 
-    return callAPI(systemPrompt, userPrompt, 2, 0, 3000);  // U5: 사주 토큰 3000
+    return callAPI(systemPrompt, userPrompt, 2, 0, 1500);
   }
 
   // ============================================================
@@ -198,8 +204,7 @@ ${tarotSummary}`;
 
     userPrompt += `\n\n위 데이터에 포함된 【메이저/마이너 비율】, 【수트 패턴】, 【숫자 패턴】, 【카드 간 원소 관계】, 【코트 카드】 정보를 모두 활용하여 깊이 있는 해석을 해주세요.`;
 
-    // U5: 타로 토큰 — 7장 스프레드는 더 긴 응답 필요
-    const tokens = tarotDrawResult.reading.length >= 7 ? 4000 : 3000;
+    const tokens = tarotDrawResult.reading.length >= 7 ? 2000 : 1500;
     return callAPI(systemPrompt, userPrompt, 2, 0, tokens);
   }
 
