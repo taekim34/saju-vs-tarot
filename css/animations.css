@@ -1,0 +1,191 @@
+/* ===== 배틀 애니메이션 ===== */
+
+/* 섹션 전환 */
+.section {
+  animation: fade-in 0.4s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 라운드 시작 애니메이션 */
+.round-enter {
+  animation: round-enter 0.8s ease-out;
+}
+
+@keyframes round-enter {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* VS 번개 효과 */
+.vs-flash {
+  animation: vs-flash 0.6s ease-out;
+}
+
+@keyframes vs-flash {
+  0% { opacity: 0; transform: scale(3); }
+  30% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 패널 슬라이드 인 */
+.panel-slide-left {
+  animation: slide-left 0.6s ease-out;
+}
+
+.panel-slide-right {
+  animation: slide-right 0.6s ease-out;
+}
+
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 텍스트 타이핑 효과 (글자 서서히 나타남) */
+.text-reveal {
+  animation: text-reveal 0.8s ease-out;
+}
+
+@keyframes text-reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 투표 버튼 등장 */
+.vote-enter {
+  animation: vote-enter 0.5s ease-out;
+}
+
+@keyframes vote-enter {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 투표 선택 시 반응 */
+.vote-selected {
+  animation: vote-pop 0.3s ease-out;
+}
+
+@keyframes vote-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1.05); }
+}
+
+/* 라운드 전환 */
+.round-exit {
+  animation: round-exit 0.4s ease-in forwards;
+}
+
+@keyframes round-exit {
+  to { opacity: 0; transform: translateY(-30px); }
+}
+
+/* 승리 선언 */
+.winner-reveal {
+  animation: winner-reveal 1s ease-out;
+}
+
+@keyframes winner-reveal {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { transform: scale(1.15); }
+  70% { transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 왕관 바운스 */
+.crown-bounce {
+  animation: crown-bounce 0.8s ease-out;
+}
+
+@keyframes crown-bounce {
+  0% { transform: translateY(-100px) scale(0); opacity: 0; }
+  60% { transform: translateY(10px) scale(1.2); opacity: 1; }
+  80% { transform: translateY(-5px) scale(0.95); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 점수 카운트업 효과 */
+.score-count {
+  animation: score-pop 0.4s ease-out;
+}
+
+@keyframes score-pop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* 타로 카드 뒤집기 */
+.card-flip {
+  animation: card-flip 0.6s ease-out;
+}
+
+@keyframes card-flip {
+  0% { transform: rotateY(180deg) scale(0.8); opacity: 0; }
+  100% { transform: rotateY(0) scale(1); opacity: 1; }
+}
+
+/* 사주 글자 등장 (하나씩) */
+.saju-char-enter {
+  display: inline-block;
+  animation: saju-char 0.4s ease-out both;
+}
+
+@keyframes saju-char {
+  from { opacity: 0; transform: translateY(-20px) scale(1.5); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 결과 라운드 아이템 순차 등장 */
+.result-item-enter {
+  animation: result-item 0.4s ease-out both;
+}
+
+@keyframes result-item {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* 공유 버튼 펄스 */
+.share-pulse {
+  animation: share-pulse 1.5s infinite;
+}
+
+@keyframes share-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 144, 217, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(74, 144, 217, 0); }
+}
+
+/* 로딩 텍스트 점점점 */
+.loading-dots::after {
+  content: '';
+  animation: loading-dots 1.5s infinite;
+}
+
+@keyframes loading-dots {
+  0% { content: '.'; }
+  33% { content: '..'; }
+  66% { content: '...'; }
+}
+
+/* 배경 그라데이션 이동 */
+.bg-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

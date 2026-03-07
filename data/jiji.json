@@ -1,0 +1,134 @@
+[
+  {
+    "name": "子",
+    "korean": "자",
+    "index": 0,
+    "animal": "쥐",
+    "element": "수",
+    "yin_yang": "양",
+    "jijanggan": ["癸"],
+    "month": 11,
+    "time_range": "23:00-01:00"
+  },
+  {
+    "name": "丑",
+    "korean": "축",
+    "index": 1,
+    "animal": "소",
+    "element": "토",
+    "yin_yang": "음",
+    "jijanggan": ["己", "癸", "辛"],
+    "month": 12,
+    "time_range": "01:00-03:00"
+  },
+  {
+    "name": "寅",
+    "korean": "인",
+    "index": 2,
+    "animal": "호랑이",
+    "element": "목",
+    "yin_yang": "양",
+    "jijanggan": ["甲", "丙", "戊"],
+    "month": 1,
+    "time_range": "03:00-05:00"
+  },
+  {
+    "name": "卯",
+    "korean": "묘",
+    "index": 3,
+    "animal": "토끼",
+    "element": "목",
+    "yin_yang": "음",
+    "jijanggan": ["乙"],
+    "month": 2,
+    "time_range": "05:00-07:00"
+  },
+  {
+    "name": "辰",
+    "korean": "진",
+    "index": 4,
+    "animal": "용",
+    "element": "토",
+    "yin_yang": "양",
+    "jijanggan": ["戊", "乙", "癸"],
+    "month": 3,
+    "time_range": "07:00-09:00"
+  },
+  {
+    "name": "巳",
+    "korean": "사",
+    "index": 5,
+    "animal": "뱀",
+    "element": "화",
+    "yin_yang": "음",
+    "jijanggan": ["丙", "庚", "戊"],
+    "month": 4,
+    "time_range": "09:00-11:00"
+  },
+  {
+    "name": "午",
+    "korean": "오",
+    "index": 6,
+    "animal": "말",
+    "element": "화",
+    "yin_yang": "양",
+    "jijanggan": ["丁", "己"],
+    "month": 5,
+    "time_range": "11:00-13:00"
+  },
+  {
+    "name": "未",
+    "korean": "미",
+    "index": 7,
+    "animal": "양",
+    "element": "토",
+    "yin_yang": "음",
+    "jijanggan": ["己", "丁", "乙"],
+    "month": 6,
+    "time_range": "13:00-15:00"
+  },
+  {
+    "name": "申",
+    "korean": "신",
+    "index": 8,
+    "animal": "원숭이",
+    "element": "금",
+    "yin_yang": "양",
+    "jijanggan": ["庚", "壬", "戊"],
+    "month": 7,
+    "time_range": "15:00-17:00"
+  },
+  {
+    "name": "酉",
+    "korean": "유",
+    "index": 9,
+    "animal": "닭",
+    "element": "금",
+    "yin_yang": "음",
+    "jijanggan": ["辛"],
+    "month": 8,
+    "time_range": "17:00-19:00"
+  },
+  {
+    "name": "戌",
+    "korean": "술",
+    "index": 10,
+    "animal": "개",
+    "element": "토",
+    "yin_yang": "양",
+    "jijanggan": ["戊", "辛", "丁"],
+    "month": 9,
+    "time_range": "19:00-21:00"
+  },
+  {
+    "name": "亥",
+    "korean": "해",
+    "index": 11,
+    "animal": "돼지",
+    "element": "수",
+    "yin_yang": "음",
+    "jijanggan": ["壬", "甲"],
+    "month": 10,
+    "time_range": "21:00-23:00"
+  }
+]

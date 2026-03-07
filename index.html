@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사주 vs 타로 — 운명의 대결</title>
+  <meta name="description" content="동양의 사주와 서양의 타로가 당신의 운세를 두고 벌이는 최후의 대결!">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="사주 vs 타로 — 운명의 대결">
+  <meta property="og:description" content="동양의 사주와 서양의 타로가 당신의 운세를 두고 벌이는 최후의 대결!">
+  <meta property="og:image" content="/images/og-thumbnail.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="사주 vs 타로 — 운명의 대결">
+  <meta name="twitter:description" content="동양의 사주와 서양의 타로가 당신의 운세를 두고 벌이는 최후의 대결!">
+  <meta name="twitter:image" content="/images/og-thumbnail.jpg">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+  <!-- Section 1: 인트로 -->
+  <section id="section-intro" class="section active">
+    <div class="intro-container">
+      <div class="intro-vs">
+        <div class="intro-side intro-saju">
+          <div class="intro-icon">🏮</div>
+          <div class="intro-label">사주</div>
+          <div class="intro-sub">동양의 운명학</div>
+        </div>
+        <div class="intro-vs-badge">VS</div>
+        <div class="intro-side intro-tarot">
+          <div class="intro-icon">🔮</div>
+          <div class="intro-label">타로</div>
+          <div class="intro-sub">서양의 직관</div>
+        </div>
+      </div>
+      <h1 class="intro-title">운명의 대결</h1>
+      <p class="intro-desc">같은 운세, 다른 해석<br>당신의 운세를 두고 벌이는 최후의 대결!</p>
+      <button id="btn-start" class="btn-primary btn-glow">대결 시작하기</button>
+    </div>
+  </section>
+
+  <!-- Section 2: 입력 -->
+  <section id="section-input" class="section">
+    <div class="input-container">
+      <h2 class="section-title">당신의 정보를 입력하세요</h2>
+
+      <!-- U1: 양력/음력 토글 -->
+      <div class="form-group">
+        <label class="form-label">달력 유형</label>
+        <div class="calendar-toggle">
+          <button id="btn-cal-solar" class="btn-calendar selected">☀️ 양력</button>
+          <button id="btn-cal-lunar" class="btn-calendar">🌙 음력</button>
+        </div>
+        <div id="leap-month-wrap" class="leap-month-wrap" style="display:none;">
+          <label>
+            <input type="checkbox" id="input-leap-month"> 윤달
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">생년월일 <span class="required">*필수</span></label>
+        <div class="date-inputs">
+          <select id="input-year" class="form-select">
+            <option value="">년도</option>
+          </select>
+          <select id="input-month" class="form-select">
+            <option value="">월</option>
+          </select>
+          <select id="input-day" class="form-select">
+            <option value="">일</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">성별 <span class="required">*필수</span></label>
+        <div class="gender-buttons">
+          <button class="btn-gender" data-gender="male">남성</button>
+          <button class="btn-gender" data-gender="female">여성</button>
+        </div>
+      </div>
+
+      <div class="form-divider">
+        <span>더 정확한 분석을 원한다면</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">출생시간 <span class="optional">선택</span></label>
+        <div class="time-inputs">
+          <select id="input-hour" class="form-select">
+            <option value="">시</option>
+          </select>
+          <select id="input-minute" class="form-select">
+            <option value="">분</option>
+          </select>
+          <button id="btn-no-time" class="btn-text">모름</button>
+        </div>
+      </div>
+
+      <!-- U2: 자유 질문 입력 -->
+      <div class="form-group">
+        <label class="form-label">궁금한 점 <span class="optional">선택</span></label>
+        <input id="input-question" type="text" class="form-input"
+          placeholder="예: 이직을 고민 중인데 어떨까요?" maxlength="100">
+        <p class="form-hint">구체적인 질문을 남기면 AI가 맞춤 해석을 해드려요</p>
+      </div>
+
+      <div id="input-error" class="error-message"></div>
+      <button id="btn-battle" class="btn-primary" disabled>운명의 대결!</button>
+    </div>
+  </section>
+
+  <!-- Section 3: 배틀 -->
+  <section id="section-battle" class="section">
+    <div class="battle-container">
+      <!-- 라운드 헤더 -->
+      <div class="round-header">
+        <div class="round-badge" id="round-badge">ROUND 1</div>
+        <div class="round-topic" id="round-topic">연애운</div>
+        <div class="round-progress">
+          <div class="progress-dot active"></div>
+          <div class="progress-dot"></div>
+          <div class="progress-dot"></div>
+        </div>
+      </div>
+
+      <!-- 로딩 -->
+      <div id="battle-loading" class="battle-loading">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">운세를 읽는 중...</p>
+        <div class="loading-character">
+          <span class="loading-char-name" id="loading-char-name"></span>
+          <span class="loading-char-msg" id="loading-char-msg"></span>
+        </div>
+      </div>
+
+      <!-- 에러 UI -->
+      <div id="battle-error" class="battle-error" style="display:none;">
+        <div class="error-icon">⚠️</div>
+        <p id="battle-error-message" class="error-message">오류가 발생했습니다</p>
+        <button id="btn-retry-battle" class="btn-primary">다시 시도</button>
+      </div>
+
+      <!-- VS 패널 -->
+      <div id="battle-panels" class="battle-panels" style="display:none;">
+        <div class="battle-panel panel-saju">
+          <div class="panel-header">
+            <span class="panel-icon">🏮</span>
+            <span class="panel-title">사주</span>
+          </div>
+          <div class="saju-chart" id="saju-chart"></div>
+          <div class="panel-body" id="saju-reading"></div>
+        </div>
+
+        <div class="battle-vs-divider">⚡</div>
+
+        <div class="battle-panel panel-tarot">
+          <div class="panel-header">
+            <span class="panel-icon">🔮</span>
+            <span class="panel-title">타로</span>
+          </div>
+          <div class="panel-cards" id="tarot-cards"></div>
+          <div class="panel-body" id="tarot-reading"></div>
+        </div>
+      </div>
+
+      <!-- 투표 -->
+      <div id="battle-vote" class="battle-vote" style="display:none;">
+        <p class="vote-question">어느 쪽이 더 공감되나요?</p>
+        <div class="vote-buttons">
+          <button class="btn-vote btn-vote-saju" data-vote="saju">🏮 사주</button>
+          <button class="btn-vote btn-vote-tarot" data-vote="tarot">타로 🔮</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: 결과 -->
+  <section id="section-result" class="section">
+    <div class="result-container" id="result-card">
+      <div class="result-crown">🏆</div>
+      <h2 class="result-title">최종 결과</h2>
+
+      <div class="result-winner" id="result-winner"></div>
+      <div class="result-score" id="result-score"></div>
+
+      <div class="result-rounds" id="result-rounds"></div>
+
+      <div class="result-message" id="result-message"></div>
+
+      <div class="result-actions">
+        <button id="btn-share" class="btn-primary">🔗 결과 공유하기</button>
+        <button id="btn-retry" class="btn-secondary">🔄 다시 해보기</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: 공유 (오버레이) -->
+  <div id="share-overlay" class="share-overlay" style="display:none;">
+    <div class="share-modal">
+      <button id="share-close" class="share-close">&times;</button>
+      <h3>결과 공유하기</h3>
+      <div id="share-image-preview" class="share-preview"></div>
+      <div class="share-buttons">
+        <button class="btn-share-option" data-platform="kakao">카카오톡</button>
+        <button class="btn-share-option" data-platform="twitter">Twitter</button>
+        <button class="btn-share-option" data-platform="copy">URL 복사</button>
+        <button class="btn-share-option" data-platform="download">이미지 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/loading-messages.js?v=1"></script>
+  <script src="config.js?v=5"></script>
+  <script src="js/lunar.js?v=1"></script>
+  <script src="js/saju.js?v=2"></script>
+  <script src="js/tarot.js?v=3"></script>
+  <script src="js/ai-interpreter.js?v=10"></script>
+  <script src="js/battle.js?v=5"></script>
+  <script src="js/bkend-client.js?v=1"></script>
+  <script src="js/share.js?v=3"></script>
+  <script src="js/app.js?v=6"></script>
+</body>
+</html>

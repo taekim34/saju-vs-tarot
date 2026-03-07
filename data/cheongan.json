@@ -1,0 +1,82 @@
+[
+  {
+    "name": "甲",
+    "korean": "갑",
+    "index": 0,
+    "element": "목",
+    "yin_yang": "양",
+    "meaning": "큰 나무"
+  },
+  {
+    "name": "乙",
+    "korean": "을",
+    "index": 1,
+    "element": "목",
+    "yin_yang": "음",
+    "meaning": "풀/꽃"
+  },
+  {
+    "name": "丙",
+    "korean": "병",
+    "index": 2,
+    "element": "화",
+    "yin_yang": "양",
+    "meaning": "태양"
+  },
+  {
+    "name": "丁",
+    "korean": "정",
+    "index": 3,
+    "element": "화",
+    "yin_yang": "음",
+    "meaning": "촛불/달"
+  },
+  {
+    "name": "戊",
+    "korean": "무",
+    "index": 4,
+    "element": "토",
+    "yin_yang": "양",
+    "meaning": "산/큰 땅"
+  },
+  {
+    "name": "己",
+    "korean": "기",
+    "index": 5,
+    "element": "토",
+    "yin_yang": "음",
+    "meaning": "논밭/정원"
+  },
+  {
+    "name": "庚",
+    "korean": "경",
+    "index": 6,
+    "element": "금",
+    "yin_yang": "양",
+    "meaning": "바위/쇠"
+  },
+  {
+    "name": "辛",
+    "korean": "신",
+    "index": 7,
+    "element": "금",
+    "yin_yang": "음",
+    "meaning": "보석/귀금속"
+  },
+  {
+    "name": "壬",
+    "korean": "임",
+    "index": 8,
+    "element": "수",
+    "yin_yang": "양",
+    "meaning": "바다/큰 물"
+  },
+  {
+    "name": "癸",
+    "korean": "계",
+    "index": 9,
+    "element": "수",
+    "yin_yang": "음",
+    "meaning": "이슬/비/시냇물"
+  }
+]
