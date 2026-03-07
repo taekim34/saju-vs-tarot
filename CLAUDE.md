@@ -17,14 +17,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Running Locally
 
 ```bash
-# 1. Create .env file with OpenRouter API key
-echo "OPENROUTER_API_KEY=your_key_here" > .env
-
-# 2. Serve statically (config.js fetches .env at runtime)
 npx serve .
 ```
 
-No install, no build step. The `.env` file is fetched via `fetch('.env')` in `config.js` at runtime.
+No install, no build step. Locally, AI calls go to `/api/interpret` which requires Cloudflare Workers (or mock). For full local AI testing, deploy to Cloudflare Pages or set up `wrangler pages dev .`.
+
+## Deployment
+
+- **Hosting**: Cloudflare Pages (static files + Pages Functions)
+- **API Proxy**: `functions/api/interpret.js` — Cloudflare Workers function that proxies OpenRouter API calls, keeping the API key server-side
+- **CI/CD**: GitHub Actions (`.github/workflows/deploy.yml`) — auto-deploys on push to `main`
+- **Cloudflare env vars** (set in dashboard): `OPENROUTER_API_KEY`, `MODEL`
+- **GitHub Secrets**: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+- **Security headers**: `_headers` file (CSP, HSTS, X-Frame-Options)
 
 ## Architecture
 
@@ -41,7 +46,8 @@ config.js → saju.js → lunar.js → tarot.js → ai-interpreter.js → battle
 
 | File | Global | Role |
 |------|--------|------|
-| `config.js` | `window.__CONFIG__` | Loads `.env`, sets API keys and model config |
+| `config.js` | `window.__CONFIG__` | API proxy URL + bkend.ai config (no secrets) |
+| `functions/api/interpret.js` | (Workers) | Cloudflare Pages Function — OpenRouter API proxy |
 | `js/saju.js` | `SajuEngine` | Saju (四柱) calculation — pillars, hidden stems, clashes, combinations, major luck cycles, 12 stages |
 | `js/tarot.js` | `TarotEngine` | 78-card tarot deck — shuffle, draw, spreads, elemental dignity, pattern analysis |
 | `js/lunar.js` | `LunarConverter` | Lunar-to-solar date conversion (1900-2050), no external API |
@@ -78,4 +84,4 @@ Feature documentation follows bkit PDCA methodology in `docs/`:
 - `docs/03-analysis/` — Gap analysis reports
 - `docs/04-report/` — Completion reports
 
-Completed features: `saju-vs-tarot-battle`, `tarot-card-images`, `engine-upgrade`, `ux-upgrade`
+Completed features: `saju-vs-tarot-battle`, `tarot-card-images`, `engine-upgrade`, `ux-upgrade`, `deployment`
