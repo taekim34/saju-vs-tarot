@@ -46,6 +46,7 @@
       <h1 class="intro-title">운명의 대결</h1>
       <p class="intro-desc">같은 운세, 다른 해석<br>당신의 운세를 두고 벌이는 최후의 대결!</p>
       <button id="btn-start" class="btn-primary btn-glow">대결 시작하기</button>
+      <button id="btn-stats" class="btn-stats-link">역대 전적 보기</button>
     </div>
   </section>
 
@@ -206,7 +207,16 @@
     </div>
   </section>
 
-  <!-- Section 5: 공유 (오버레이) -->
+  <!-- Section 5: 통계 -->
+  <section id="section-stats" class="section">
+    <div class="stats-container">
+      <button id="btn-stats-back" class="btn-back">&larr; 돌아가기</button>
+      <h2 class="stats-title">역대 전적</h2>
+      <div id="stats-content" class="stats-content"></div>
+    </div>
+  </section>
+
+  <!-- Section 6: 공유 (오버레이) -->
   <div id="share-overlay" class="share-overlay" style="display:none;">
     <div class="share-modal">
       <button id="share-close" class="share-close">&times;</button>
@@ -226,8 +236,9 @@
   <script src="js/tarot.js?v=3"></script>
   <script src="js/ai-interpreter.js?v=10"></script>
   <script src="js/battle.js?v=5"></script>
-  <script src="js/bkend-client.js?v=1"></script>
-  <script src="js/share.js?v=3"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/bkend-client.js?v=2"></script>
+  <script src="js/share.js?v=4"></script>
+  <script src="js/stats.js?v=1"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>

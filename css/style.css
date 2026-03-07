@@ -691,58 +691,193 @@ body {
   border-bottom: none;
 }
 
-/* 공유 결과 — 사용자 정보 */
-.shared-info-box {
+/* ===== 공유 결과 페이지 (리디자인) ===== */
+#section-result.active:has(.shared-result) {
+  display: block;
+  padding: 20px;
+}
+
+.shared-result {
+  max-width: 540px;
+  text-align: left;
+  padding: 28px 20px;
+  margin: 0 auto;
+}
+
+.shared-birth-badge {
   text-align: center;
+  padding: 8px 16px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  margin-bottom: 8px;
+}
+
+.shared-question {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--color-accent);
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.shared-winner {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.shared-score {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.shared-saju-section {
+  margin-bottom: 24px;
+}
+
+.shared-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
+.shared-round {
   margin-bottom: 16px;
-  padding: 12px 20px;
-  background: var(--color-surface);
-  border-radius: 12px;
+  padding: 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius);
   border: 1px solid var(--color-border);
 }
 
-.shared-info-birth {
-  font-size: 0.95rem;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.shared-info-question {
-  font-size: 0.9rem;
-  color: var(--color-accent);
-  font-style: italic;
-  margin: 6px 0 0;
-}
-
-/* 공유 결과 — 라운드 확장 */
-.shared-round-expanded {
-  flex-direction: column;
-  align-items: stretch;
-  padding: 16px;
-}
-
-.shared-round-header {
+.shared-round-title {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
-.shared-round-header .round-label {
+.shared-round-num {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  letter-spacing: 1px;
+}
+
+.shared-round-topic {
+  font-size: 1rem;
   font-weight: 700;
-  font-size: 0.95rem;
+  color: var(--color-text);
 }
 
-.shared-round-header .round-vote {
-  font-size: 0.85rem;
+.shared-vote-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.shared-vote-badge.saju {
+  background: var(--color-saju-glow);
+  color: var(--color-saju);
+}
+
+.shared-vote-badge.tarot {
+  background: var(--color-tarot-glow);
+  color: var(--color-tarot);
+}
+
+.shared-content-box {
+  padding: 14px 16px;
+  border-radius: 8px;
+  border-left: 3px solid var(--color-border);
+}
+
+.shared-content-box.saju-accent {
+  background: rgba(255, 107, 53, 0.05);
+  border-left-color: var(--color-saju);
+}
+
+.shared-content-box.tarot-accent {
+  background: rgba(123, 94, 167, 0.05);
+  border-left-color: var(--color-tarot);
+}
+
+.shared-content-text {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  margin: 4px 0;
+}
+
+.shared-tarot-cards {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.shared-tarot-card {
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.shared-card-img {
+  width: 90px;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: block;
+  margin: 0 auto;
+}
+
+.shared-card-img.reversed {
+  transform: rotate(180deg);
+}
+
+.shared-card-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-top: 6px;
+}
+
+.shared-card-pos {
+  font-size: 0.65rem;
   color: var(--color-text-dim);
+  margin-top: 2px;
+}
+
+.shared-card-dir {
+  font-size: 0.6rem;
+  color: var(--color-text-dim);
+}
+
+.shared-judgment {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.shared-judgment-text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  margin-top: 8px;
 }
 
 /* 공유 결과 — CTA */
 .shared-cta {
   text-align: center;
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 24px;
+  padding: 20px 0;
 }
 
 .shared-cta-text {
@@ -753,61 +888,7 @@ body {
 
 .shared-cta .btn-primary {
   width: auto;
-  padding: 12px 40px;
-}
-
-/* 공유 결과 해석 박스 */
-.result-round-item:has(.shared-reading) {
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.shared-reading {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--color-surface);
-  border-left: 3px solid var(--color-border);
-  margin-top: 4px;
-}
-
-.shared-reading-saju {
-  border-left-color: var(--color-saju, #e8910c);
-}
-
-.shared-reading-tarot {
-  border-left-color: var(--color-tarot, #9b59b6);
-}
-
-.shared-reading-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: var(--color-text-dim);
-}
-
-.shared-reading-text {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--color-text);
-  margin: 2px 0;
-}
-
-.round-winner-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.round-winner-badge.saju {
-  background: var(--color-saju-glow);
-  color: var(--color-saju);
-}
-
-.round-winner-badge.tarot {
-  background: var(--color-tarot-glow);
-  color: var(--color-tarot);
+  padding: 14px 48px;
 }
 
 .result-message {
@@ -925,6 +1006,14 @@ body {
 
   .btn-vote {
     max-width: 100%;
+  }
+
+  .shared-card-img {
+    width: 70px;
+  }
+
+  .shared-tarot-cards {
+    gap: 6px;
   }
 }
 
@@ -1143,6 +1232,203 @@ body {
   font-size: 0.78rem;
   color: var(--color-text-dim);
   opacity: 0.7;
+}
+
+/* ===== 역대 전적 (통계) ===== */
+#section-stats.active {
+  display: block;
+  padding: 20px;
+}
+
+.stats-container {
+  max-width: 540px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.stats-title {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+  color: var(--color-accent);
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 12px;
+}
+
+.btn-back:hover {
+  color: var(--color-text);
+}
+
+.btn-stats-link {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-dim);
+  padding: 10px 24px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 16px;
+  transition: all 0.2s;
+  width: auto;
+}
+
+.btn-stats-link:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.stats-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.stats-total-card {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08), rgba(123, 94, 167, 0.08));
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.stats-total-num {
+  font-size: 3rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--color-saju), var(--color-accent), var(--color-tarot));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.stats-total-label {
+  font-size: 0.95rem;
+  color: var(--color-text-dim);
+  margin-top: 4px;
+}
+
+.stats-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--color-text);
+}
+
+.stats-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.stats-legend-item {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stats-legend-item.saju { color: var(--color-saju); }
+.stats-legend-item.tarot { color: var(--color-tarot); }
+
+.stats-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+.stats-bar-label:first-of-type {
+  margin-top: 0;
+}
+
+.stats-bar-count {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+}
+
+.stats-bar-pref {
+  font-size: 0.75rem;
+  color: var(--color-accent);
+}
+
+.stats-bar {
+  display: flex;
+  height: 32px;
+  border-radius: 8px;
+  overflow: hidden;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.stats-bar-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-width: 50px;
+  transition: width 0.8s ease;
+}
+
+.stats-bar-seg.saju {
+  background: rgba(255, 107, 53, 0.25);
+  color: var(--color-saju);
+}
+
+.stats-bar-seg.tarot {
+  background: rgba(123, 94, 167, 0.25);
+  color: var(--color-tarot);
+}
+
+.stats-bar-empty {
+  width: 100%;
+  text-align: center;
+  color: var(--color-text-dim);
+  font-size: 0.8rem;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.stats-no-data {
+  color: var(--color-text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 12px 0;
+}
+
+.stats-loading-indicator {
+  text-align: center;
+  color: var(--color-text-dim);
+  padding: 60px 0;
+  font-size: 0.95rem;
+}
+
+.stats-error {
+  text-align: center;
+  color: var(--color-error);
+  padding: 60px 0;
+}
+
+.stats-empty {
+  text-align: center;
+  color: var(--color-text-dim);
+  padding: 60px 0;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 /* ===== 유틸리티 ===== */

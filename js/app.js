@@ -13,7 +13,8 @@
     intro: $('#section-intro'),
     input: $('#section-input'),
     battle: $('#section-battle'),
-    result: $('#section-result')
+    result: $('#section-result'),
+    stats: $('#section-stats')
   };
 
   // 입력 폼
@@ -112,93 +113,129 @@
 
       showSection('result');
 
-      // 생년월일/질문 정보 표시
+      // 결과 컨테이너를 공유용으로 재구성
+      const container = document.getElementById('result-card');
+      container.textContent = '';
+      container.className = 'result-container shared-result';
+
+      // 생년월일 / 질문
       const birthInfo = data.birth_info || '';
-      const question = data.question || '';
-      if (birthInfo || question) {
-        const infoBox = createEl('div', 'shared-info-box');
-        if (birthInfo) {
-          const parts = birthInfo.split('-');
-          const genderText = parts[3] === 'male' ? '남성' : '여성';
-          infoBox.appendChild(createEl('p', 'shared-info-birth', `${parts[0]}년 ${parts[1]}월 ${parts[2]}일 ${genderText}`));
-        }
-        if (question) {
-          infoBox.appendChild(createEl('p', 'shared-info-question', `"${question}"`));
-        }
-        resultWinner.parentNode.insertBefore(infoBox, resultWinner);
+      if (birthInfo) {
+        const parts = birthInfo.split('-');
+        const genderIcon = parts[3] === 'male' ? '\u{1F468}' : '\u{1F469}';
+        container.appendChild(createEl('div', 'shared-birth-badge',
+          `${genderIcon} ${parts[0]}년 ${parts[1]}월 ${parts[2]}일`));
+      }
+      if (data.question) {
+        container.appendChild(createEl('p', 'shared-question', `"${data.question}"`));
       }
 
       // 승자
       const winnerIcon = data.winner === 'saju' ? '\u{1F3EE}' : '\u{1F52E}';
       const winnerName = data.winner === 'saju' ? '사주' : '타로';
-
-      resultWinner.textContent = '';
-      resultWinner.appendChild(createEl('div', 'winner-icon crown-bounce', winnerIcon));
-      resultWinner.appendChild(createEl('div', 'winner-name winner-reveal', `${winnerName} 승리!`));
+      const winnerDiv = createEl('div', 'shared-winner');
+      winnerDiv.appendChild(createEl('div', 'winner-icon crown-bounce', winnerIcon));
+      winnerDiv.appendChild(createEl('div', 'winner-name winner-reveal', `${winnerName} 승리!`));
+      container.appendChild(winnerDiv);
 
       // 점수
       const [sajuScore, tarotScore] = (data.scores || '0-0').split('-');
-      resultScore.textContent = '';
+      const scoreDiv = createEl('div', 'shared-score');
       const scoreRow = createEl('div', 'score-display');
       scoreRow.appendChild(createEl('span', 'score-saju score-count', `\u{1F3EE} ${sajuScore}`));
       scoreRow.appendChild(createEl('span', 'score-vs', ':'));
       scoreRow.appendChild(createEl('span', 'score-tarot score-count', `${tarotScore} \u{1F52E}`));
-      resultScore.appendChild(scoreRow);
+      scoreDiv.appendChild(scoreRow);
+      container.appendChild(scoreDiv);
 
-      // 라운드별 해석 포함 표시
-      resultRounds.textContent = '';
+      // 사주 명식표 (첫 라운드 데이터에서)
       const rounds = data.rounds || [];
-      rounds.forEach((r, i) => {
-        const voteIcon = r.vote === 'saju' ? '\u{1F3EE}' : '\u{1F52E}';
-        const item = createEl('div', 'result-round-item result-item-enter shared-round-expanded');
-        item.style.animationDelay = `${i * 0.15}s`;
-
-        const header = createEl('div', 'shared-round-header');
-        header.appendChild(createEl('span', 'round-label', `ROUND ${i + 1}. ${r.topic || ''}`));
-        if (r.vote) header.appendChild(createEl('span', 'round-vote', `선택: ${voteIcon}`));
-        item.appendChild(header);
-
-        // 사주 해석
-        if (r.sajuReading) {
-          const sajuBox = createEl('div', 'shared-reading shared-reading-saju');
-          sajuBox.appendChild(createEl('div', 'shared-reading-title', '\u{1F3EE} 사주명인'));
-          r.sajuReading.split('\n').filter(l => l.trim()).forEach(line => {
-            sajuBox.appendChild(createEl('p', 'shared-reading-text', line));
-          });
-          item.appendChild(sajuBox);
-        }
-
-        // 타로 해석
-        if (r.tarotReading) {
-          const tarotBox = createEl('div', 'shared-reading shared-reading-tarot');
-          tarotBox.appendChild(createEl('div', 'shared-reading-title', '\u{1F52E} 타로전문가'));
-          r.tarotReading.split('\n').filter(l => l.trim()).forEach(line => {
-            tarotBox.appendChild(createEl('p', 'shared-reading-text', line));
-          });
-          item.appendChild(tarotBox);
-        }
-
-        resultRounds.appendChild(item);
-      });
-
-      // AI 메시지
-      resultMessage.textContent = '';
-      if (data.judgment) {
-        const msgBox = createEl('div', 'message-box text-reveal');
-        msgBox.appendChild(createEl('p', 'message-title', 'AI 심판의 한마디'));
-        msgBox.appendChild(createEl('p', 'message-text', data.judgment));
-        resultMessage.appendChild(msgBox);
+      const sajuPillars = rounds[0]?.sajuPillars;
+      const sajuElements = rounds[0]?.sajuElements;
+      if (sajuPillars) {
+        const chartSection = createEl('div', 'shared-saju-section');
+        chartSection.appendChild(createEl('h3', 'shared-section-title', '\u{1F3EE} 사주 명식'));
+        const chartContainer = createEl('div', 'saju-chart');
+        renderSajuChart(chartContainer, { pillars: sajuPillars, elements: sajuElements });
+        chartSection.appendChild(chartContainer);
+        container.appendChild(chartSection);
       }
 
-      // 공유 결과 안내
-      const notice = createEl('div', 'shared-cta');
-      notice.appendChild(createEl('p', 'shared-cta-text', '나도 사주 vs 타로 운명의 대결을 해보고 싶다면?'));
+      // 라운드별 — 선택된 쪽만 표시
+      rounds.forEach((r, i) => {
+        const roundSection = createEl('div', 'shared-round');
+        const isSaju = r.vote === 'saju';
+
+        // 라운드 헤더
+        const header = createEl('div', 'shared-round-title');
+        header.appendChild(createEl('span', 'shared-round-num', `ROUND ${i + 1}`));
+        header.appendChild(createEl('span', 'shared-round-topic', r.topic || ''));
+        const badge = createEl('span', `shared-vote-badge ${isSaju ? 'saju' : 'tarot'}`);
+        badge.textContent = isSaju ? '\u{1F3EE} 사주 선택' : '\u{1F52E} 타로 선택';
+        header.appendChild(badge);
+        roundSection.appendChild(header);
+
+        if (isSaju) {
+          // 사주 해석
+          const readingBox = createEl('div', 'shared-content-box saju-accent');
+          (r.sajuReading || '').split('\n').filter(l => l.trim()).forEach(line => {
+            readingBox.appendChild(createEl('p', 'shared-content-text', line));
+          });
+          roundSection.appendChild(readingBox);
+        } else {
+          // 타로 카드 이미지
+          if (r.tarotCards && r.tarotCards.length > 0) {
+            const cardsContainer = createEl('div', 'shared-tarot-cards');
+            r.tarotCards.forEach(card => {
+              const cardEl = createEl('div', 'shared-tarot-card');
+              if (card.image_key) {
+                const img = document.createElement('img');
+                img.src = `images/tarot/${card.image_key}.jpg`;
+                img.alt = card.korean || '';
+                img.className = `shared-card-img${card.isReversed ? ' reversed' : ''}`;
+                img.loading = 'lazy';
+                cardEl.appendChild(img);
+              }
+              cardEl.appendChild(createEl('div', 'shared-card-name', card.korean || ''));
+              if (card.position) {
+                cardEl.appendChild(createEl('div', 'shared-card-pos', card.position));
+              }
+              if (card.direction) {
+                cardEl.appendChild(createEl('div', 'shared-card-dir', card.direction));
+              }
+              cardsContainer.appendChild(cardEl);
+            });
+            roundSection.appendChild(cardsContainer);
+          }
+
+          // 타로 해석
+          const readingBox = createEl('div', 'shared-content-box tarot-accent');
+          (r.tarotReading || '').split('\n').filter(l => l.trim()).forEach(line => {
+            readingBox.appendChild(createEl('p', 'shared-content-text', line));
+          });
+          roundSection.appendChild(readingBox);
+        }
+
+        container.appendChild(roundSection);
+      });
+
+      // AI 심판 한마디
+      if (data.judgment) {
+        const judgeDiv = createEl('div', 'shared-judgment');
+        judgeDiv.appendChild(createEl('h3', 'shared-section-title', '\u{2696}\u{FE0F} AI 심판의 한마디'));
+        judgeDiv.appendChild(createEl('p', 'shared-judgment-text', data.judgment));
+        container.appendChild(judgeDiv);
+      }
+
+      // CTA
+      const ctaDiv = createEl('div', 'shared-cta');
+      ctaDiv.appendChild(createEl('p', 'shared-cta-text', '나도 사주 vs 타로 운명의 대결을 해보고 싶다면?'));
       const ctaBtn = createEl('button', 'btn-primary btn-glow', '나도 해보기');
       ctaBtn.addEventListener('click', () => {
         window.location.href = window.location.href.split('?')[0];
       });
-      notice.appendChild(ctaBtn);
-      resultMessage.appendChild(notice);
+      ctaDiv.appendChild(ctaBtn);
+      container.appendChild(ctaDiv);
     } catch (e) {
       console.error('공유 결과 로드 실패:', e);
     }
@@ -303,6 +340,19 @@
     $$('.btn-share-option').forEach(btn => {
       btn.addEventListener('click', () => ShareManager.share(btn.dataset.platform));
     });
+
+    // 통계 페이지
+    const btnStats = $('#btn-stats');
+    if (btnStats) {
+      btnStats.addEventListener('click', () => {
+        showSection('stats');
+        StatsManager.loadAndRender($('#stats-content'));
+      });
+    }
+    const btnStatsBack = $('#btn-stats-back');
+    if (btnStatsBack) {
+      btnStatsBack.addEventListener('click', () => showSection('intro'));
+    }
   }
 
   // ===== 폼 유효성 검사 =====
@@ -536,17 +586,37 @@
     msgBox.appendChild(createEl('p', 'message-text', result.message || result.aiJudgment.reason || ''));
     resultMessage.appendChild(msgBox);
 
-    // 공유용 데이터에 birth_info, question, judgment 추가
-    result.birth_info = currentUserData ? `${currentUserData.year}-${currentUserData.month}-${currentUserData.day}-${currentUserData.gender}` : '';
-    result.question = currentUserData?.question || '';
-    result.judgment = result.message || result.aiJudgment?.reason || '';
-    result.rounds = (result.rounds || []).map(r => ({
-      ...r,
-      sajuReading: r.saju?.reading?.text || '',
-      tarotReading: r.tarot?.reading?.text || ''
-    }));
+    // 공유용 데이터 준비 (사주 명식 + 타로 카드 포함)
+    const shareData = {
+      winner: result.winner,
+      scores: result.scores,
+      voteDetail: result.voteDetail,
+      birth_info: currentUserData ? `${currentUserData.year}-${currentUserData.month}-${currentUserData.day}-${currentUserData.gender}` : '',
+      question: currentUserData?.question || '',
+      judgment: result.message || result.aiJudgment?.reason || '',
+      rounds: (result.rounds || []).map((r, i) => {
+        const rd = {
+          topic: r.topic,
+          vote: r.vote,
+          sajuReading: r.saju?.reading?.text || '',
+          tarotReading: r.tarot?.reading?.text || '',
+          tarotCards: (r.tarot?.draw?.reading || []).map(item => ({
+            image_key: item.card?.image_key,
+            korean: item.card?.korean || item.card?.name,
+            isReversed: !!item.card?.isReversed,
+            position: item.position,
+            direction: item.direction
+          }))
+        };
+        if (i === 0 && r.saju?.result) {
+          rd.sajuPillars = r.saju.result.pillars;
+          rd.sajuElements = r.saju.result.elements;
+        }
+        return rd;
+      })
+    };
 
-    ShareManager.setResult(result);
+    ShareManager.setResult(shareData);
   }
 
   // ===== 리딩 텍스트 렌더 (safe DOM) =====

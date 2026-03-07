@@ -59,5 +59,23 @@ const BkendClient = (() => {
     return result.data || result;
   }
 
-  return { saveResult, getResult };
+  async function listResults(limit = 100, offset = 0) {
+    const { apiKey, baseUrl } = getConfig();
+    const response = await fetch(`${baseUrl}/v1/data/battle_results?limit=${limit}&offset=${offset}`, {
+      headers: {
+        'X-API-Key': apiKey
+      }
+    });
+
+    if (!response.ok) {
+      console.error('bkend list error:', response.status);
+      return [];
+    }
+
+    const result = await response.json();
+    const data = result.data || result;
+    return data.items || data || [];
+  }
+
+  return { saveResult, getResult, listResults };
 })();

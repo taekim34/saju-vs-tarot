@@ -30,12 +30,7 @@ const ShareManager = (() => {
       const id = await BkendClient.saveResult({
         winner: resultData.winner,
         scores: `${resultData.voteDetail.saju}-${resultData.voteDetail.tarot}`,
-        rounds: (resultData.rounds || []).map(r => ({
-          topic: r.topic,
-          vote: r.vote,
-          sajuReading: r.sajuReading || '',
-          tarotReading: r.tarotReading || ''
-        })),
+        rounds: resultData.rounds || [],
         birth_info: resultData.birth_info || '',
         question: resultData.question || '',
         judgment: resultData.judgment || ''
