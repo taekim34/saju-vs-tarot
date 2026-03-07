@@ -1,7 +1,7 @@
 /**
  * 공유 기능 (share.js)
  *
- * 결과 카드 이미지 생성 + SNS 공유
+ * X(Twitter) 공유 + URL 복사
  */
 
 const ShareManager = (() => {
@@ -17,53 +17,6 @@ const ShareManager = (() => {
   }
 
   /**
-   * 결과 카드 이미지 생성 (html2canvas)
-   */
-  async function generateImage() {
-    const card = document.getElementById('result-card');
-    if (!card) return null;
-
-    // html2canvas CDN 로드 (아직 없다면)
-    if (typeof html2canvas === 'undefined') {
-      // html2canvas v1.4.1 — 버전 고정 + SRI
-      await loadScript(
-        'https://html2canvas.hertzen.com/dist/html2canvas.min.js',
-        'sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H'
-      );
-    }
-
-    try {
-      const canvas = await html2canvas(card, {
-        backgroundColor: '#1a1a2e',
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-      return canvas;
-    } catch (e) {
-      console.error('이미지 생성 실패:', e);
-      return null;
-    }
-  }
-
-  /**
-   * 스크립트 동적 로드
-   */
-  function loadScript(src, integrity = null) {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = src;
-      if (integrity) {
-        script.integrity = integrity;
-        script.crossOrigin = 'anonymous';
-      }
-      script.onload = resolve;
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
-  }
-
-  /**
    * bkend에 결과 저장 → 공유 URL 생성
    */
   async function getShareUrl() {
@@ -76,7 +29,7 @@ const ShareManager = (() => {
     try {
       const id = await BkendClient.saveResult({
         winner: resultData.winner,
-        scores: `${resultData.scores.saju}-${resultData.scores.tarot}`,
+        scores: `${resultData.voteDetail.saju}-${resultData.voteDetail.tarot}`,
         rounds: (resultData.rounds || []).map(r => ({
           topic: r.topic,
           vote: r.vote,
@@ -94,7 +47,7 @@ const ShareManager = (() => {
       // 폴백: 기존 방식
       const params = new URLSearchParams({
         w: resultData.winner,
-        s: `${resultData.scores.saju}-${resultData.scores.tarot}`
+        s: `${resultData.voteDetail.saju}-${resultData.voteDetail.tarot}`
       });
       return `${base}?${params.toString()}`;
     }
@@ -107,7 +60,7 @@ const ShareManager = (() => {
     if (!resultData) return '사주 vs 타로 운명의 대결!';
 
     const winnerName = resultData.winner === 'saju' ? '사주' : '타로';
-    return `사주 vs 타로 운명의 대결! ${winnerName} 승! (${resultData.scores.saju}:${resultData.scores.tarot}) 나의 운세를 확인해보세요!`;
+    return `사주 vs 타로 운명의 대결! ${winnerName} 승! (${resultData.voteDetail.saju}:${resultData.voteDetail.tarot}) 나의 운세를 확인해보세요!`;
   }
 
   /**
@@ -118,49 +71,17 @@ const ShareManager = (() => {
     const text = getShareText();
 
     switch (platform) {
-      case 'kakao':
-        shareKakao(url, text);
-        break;
       case 'twitter':
         shareTwitter(url, text);
         break;
       case 'copy':
         await copyUrl(url);
         break;
-      case 'download':
-        await downloadImage();
-        break;
     }
   }
 
   /**
-   * 카카오톡 공유
-   */
-  function shareKakao(url, text) {
-    // Kakao SDK가 없으면 URL 복사로 폴백
-    if (typeof Kakao === 'undefined' || !Kakao.isInitialized()) {
-      const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(url)}`;
-      window.open(kakaoUrl, '_blank', 'width=600,height=400');
-      return;
-    }
-
-    Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title: '사주 vs 타로 — 운명의 대결',
-        description: text,
-        imageUrl: '',
-        link: { mobileWebUrl: url, webUrl: url }
-      },
-      buttons: [{
-        title: '나도 해보기',
-        link: { mobileWebUrl: url, webUrl: url }
-      }]
-    });
-  }
-
-  /**
-   * 트위터 공유
+   * 트위터(X) 공유
    */
   function shareTwitter(url, text) {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
@@ -187,22 +108,6 @@ const ShareManager = (() => {
   }
 
   /**
-   * 이미지 다운로드
-   */
-  async function downloadImage() {
-    const canvas = await generateImage();
-    if (!canvas) {
-      showToast('이미지 생성에 실패했습니다.');
-      return;
-    }
-
-    const link = document.createElement('a');
-    link.download = 'saju-vs-tarot-result.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  }
-
-  /**
    * 토스트 메시지
    */
   function showToast(message) {
@@ -226,7 +131,6 @@ const ShareManager = (() => {
 
   return {
     setResult,
-    generateImage,
     share,
     getShareUrl,
     getShareText

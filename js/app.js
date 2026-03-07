@@ -510,12 +510,12 @@
     // 점수
     resultScore.textContent = '';
     const scoreRow = createEl('div', 'score-display');
-    scoreRow.appendChild(createEl('span', 'score-saju score-count', `\u{1F3EE} ${result.scores.saju}`));
+    scoreRow.appendChild(createEl('span', 'score-saju score-count', `\u{1F3EE} ${result.voteDetail.saju}`));
     scoreRow.appendChild(createEl('span', 'score-vs', ':'));
-    scoreRow.appendChild(createEl('span', 'score-tarot score-count', `${result.scores.tarot} \u{1F52E}`));
+    scoreRow.appendChild(createEl('span', 'score-tarot score-count', `${result.voteDetail.tarot} \u{1F52E}`));
     resultScore.appendChild(scoreRow);
     const detailEl = createEl('div', 'score-detail',
-      `투표: 사주 ${result.voteDetail.saju} - 타로 ${result.voteDetail.tarot}`);
+      `3라운드 투표 결과`);
     resultScore.appendChild(detailEl);
 
     // 라운드별 요약
