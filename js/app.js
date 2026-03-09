@@ -661,8 +661,18 @@
 
     ShareManager.setResult(shareData);
 
-    // 자동 저장 (통계용 — 공유 안 해도 기록 남김)
+    // 자동 저장: 공유용 풀 데이터
     ShareManager.getShareUrl().catch(e => console.warn('자동 저장 실패:', e));
+
+    // 통계 저장: 경량 레코드 (카운트 쿼리용)
+    BkendClient.saveStat({
+      winner: result.winner,
+      gender: currentUserData?.gender || '',
+      birth_year: currentUserData?.year || 0,
+      r1_vote: result.rounds[0]?.vote || '',
+      r2_vote: result.rounds[1]?.vote || '',
+      r3_vote: result.rounds[2]?.vote || ''
+    }).catch(e => console.warn('통계 저장 실패:', e));
   }
 
   // ===== 리딩 텍스트 렌더 (safe DOM) =====

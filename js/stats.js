@@ -1,7 +1,8 @@
 /**
  * 통계 관리 (stats.js)
  *
- * 역대 배틀 결과 통계 계산 및 렌더링
+ * 서버 측 카운트 쿼리 (andFilters + pagination.total) 기반 통계
+ * 전체 레코드를 가져오지 않고, 조건별 카운트만 병렬 요청
  */
 const StatsManager = (() => {
   function createEl(tag, className, text) {
@@ -15,75 +16,83 @@ const StatsManager = (() => {
     return total > 0 ? Math.round(val / total * 100) : 0;
   }
 
+  const TOPICS = ['연애운', '재물운', '종합운세'];
+  const DECADES = [10, 20, 30, 40, 50, 60, 70, 80];
+
+  /**
+   * 모든 통계를 병렬 카운트 쿼리로 수집
+   */
+  async function fetchAllCounts() {
+    const c = BkendClient.countStats;
+
+    // Wave 1: 종합 + 라운드 + 성별 (15건 병렬)
+    const [
+      total, sajuWins, tarotWins,
+      r1Saju, r1Tarot, r2Saju, r2Tarot, r3Saju, r3Tarot,
+      maleTotal, maleSaju, maleTarot,
+      femaleTotal, femaleSaju, femaleTarot
+    ] = await Promise.all([
+      c({}), c({ winner: 'saju' }), c({ winner: 'tarot' }),
+      c({ r1_vote: 'saju' }), c({ r1_vote: 'tarot' }),
+      c({ r2_vote: 'saju' }), c({ r2_vote: 'tarot' }),
+      c({ r3_vote: 'saju' }), c({ r3_vote: 'tarot' }),
+      c({ gender: 'male' }), c({ gender: 'male', winner: 'saju' }), c({ gender: 'male', winner: 'tarot' }),
+      c({ gender: 'female' }), c({ gender: 'female', winner: 'saju' }), c({ gender: 'female', winner: 'tarot' })
+    ]);
+
+    // Wave 2: 연령대 (birth_year 범위 필터, 최대 24건 병렬)
+    const now = new Date().getFullYear();
+    const ageQueries = DECADES.flatMap(decade => {
+      const maxYear = now - decade;
+      const minYear = now - decade - 9;
+      const range = { birth_year: { $gte: minYear, $lte: maxYear } };
+      return [
+        c(range),
+        c({ ...range, winner: 'saju' }),
+        c({ ...range, winner: 'tarot' })
+      ];
+    });
+    const ageResults = await Promise.all(ageQueries);
+
+    // 연령대 결과 조합
+    const age = {};
+    DECADES.forEach((decade, i) => {
+      const dTotal = ageResults[i * 3];
+      const dSaju = ageResults[i * 3 + 1];
+      const dTarot = ageResults[i * 3 + 2];
+      if (dTotal > 0) {
+        age[`${decade}대`] = { total: dTotal, saju: dSaju, tarot: dTarot };
+      }
+    });
+
+    return {
+      total,
+      overall: { saju: sajuWins, tarot: tarotWins },
+      roundVotes: {
+        '연애운': { saju: r1Saju, tarot: r1Tarot },
+        '재물운': { saju: r2Saju, tarot: r2Tarot },
+        '종합운세': { saju: r3Saju, tarot: r3Tarot }
+      },
+      gender: {
+        male: { total: maleTotal, saju: maleSaju, tarot: maleTarot },
+        female: { total: femaleTotal, saju: femaleSaju, tarot: femaleTarot }
+      },
+      age
+    };
+  }
+
   async function loadAndRender(container) {
     container.textContent = '';
     container.appendChild(createEl('div', 'stats-loading-indicator', '통계를 불러오는 중...'));
 
     try {
-      const results = await BkendClient.listResults(500);
-      const stats = compute(results);
+      const stats = await fetchAllCounts();
       render(container, stats);
     } catch (e) {
       console.error('통계 로드 실패:', e);
       container.textContent = '';
       container.appendChild(createEl('p', 'stats-error', '통계를 불러오지 못했습니다.'));
     }
-  }
-
-  function compute(results) {
-    const total = results.length;
-    if (total === 0) return { total: 0 };
-
-    let sajuWins = 0, tarotWins = 0;
-    const roundVotes = {
-      '연애운': { saju: 0, tarot: 0 },
-      '재물운': { saju: 0, tarot: 0 },
-      '종합운세': { saju: 0, tarot: 0 }
-    };
-    const gender = {
-      male: { saju: 0, tarot: 0, total: 0 },
-      female: { saju: 0, tarot: 0, total: 0 }
-    };
-    const age = {};
-
-    results.forEach(r => {
-      if (r.winner === 'saju') sajuWins++;
-      else if (r.winner === 'tarot') tarotWins++;
-
-      // Round votes
-      (r.rounds || []).forEach(rd => {
-        if (roundVotes[rd.topic] && rd.vote) {
-          roundVotes[rd.topic][rd.vote]++;
-        }
-      });
-
-      // Demographics from birth_info "YYYY-MM-DD-gender"
-      if (r.birth_info) {
-        const parts = r.birth_info.split('-');
-        const year = parseInt(parts[0]);
-        const g = parts[3];
-
-        if (g && gender[g]) {
-          gender[g].total++;
-          if (r.winner === 'saju') gender[g].saju++;
-          else if (r.winner === 'tarot') gender[g].tarot++;
-        }
-
-        if (year && !isNaN(year)) {
-          const a = new Date().getFullYear() - year;
-          const decade = Math.floor(a / 10) * 10;
-          if (decade >= 10 && decade <= 80) {
-            const key = `${decade}대`;
-            if (!age[key]) age[key] = { saju: 0, tarot: 0, total: 0 };
-            age[key].total++;
-            if (r.winner === 'saju') age[key].saju++;
-            else if (r.winner === 'tarot') age[key].tarot++;
-          }
-        }
-      }
-    });
-
-    return { total, overall: { saju: sajuWins, tarot: tarotWins }, roundVotes, gender, age };
   }
 
   function renderBar(valA, valB) {
@@ -138,7 +147,7 @@ const StatsManager = (() => {
     // Per-round
     const roundCard = createEl('div', 'stats-card');
     roundCard.appendChild(createEl('h3', 'stats-card-title', '라운드별 투표'));
-    ['연애운', '재물운', '종합운세'].forEach(topic => {
+    TOPICS.forEach(topic => {
       const rv = stats.roundVotes[topic];
       if (!rv) return;
       const total = rv.saju + rv.tarot;
@@ -154,12 +163,8 @@ const StatsManager = (() => {
     // Gender
     const genderCard = createEl('div', 'stats-card');
     genderCard.appendChild(createEl('h3', 'stats-card-title', '성별 분석'));
-    const genderData = [
-      { key: 'male', name: '남성' },
-      { key: 'female', name: '여성' }
-    ];
     let hasGenderData = false;
-    genderData.forEach(({ key, name }) => {
+    [{ key: 'male', name: '남성' }, { key: 'female', name: '여성' }].forEach(({ key, name }) => {
       const g = stats.gender[key];
       if (g.total === 0) return;
       hasGenderData = true;
