@@ -118,16 +118,18 @@
       container.textContent = '';
       container.className = 'result-container shared-result';
 
-      // 생년월일 / 질문
+      // 생년월일 + 성별 + 시간
       const birthInfo = data.birth_info || '';
       if (birthInfo) {
         const parts = birthInfo.split('-');
-        const genderIcon = parts[3] === 'male' ? '\u{1F468}' : '\u{1F469}';
-        container.appendChild(createEl('div', 'shared-birth-badge',
-          `${genderIcon} ${parts[0]}년 ${parts[1]}월 ${parts[2]}일`));
-      }
-      if (data.question) {
-        container.appendChild(createEl('p', 'shared-question', `"${data.question}"`));
+        const genderText = parts[3] === 'male' ? '\u{1F468} 남성' : '\u{1F469} 여성';
+        let birthText = `${parts[0]}년 ${parts[1]}월 ${parts[2]}일 ${genderText}`;
+        if (parts[4] != null && parts[4] !== '') {
+          const h = String(parts[4]).padStart(2, '0');
+          const m = String(parts[5] || 0).padStart(2, '0');
+          birthText += ` ${h}:${m}생`;
+        }
+        container.appendChild(createEl('div', 'shared-birth-badge', birthText));
       }
 
       // 승자
@@ -591,7 +593,7 @@
       winner: result.winner,
       scores: result.scores,
       voteDetail: result.voteDetail,
-      birth_info: currentUserData ? `${currentUserData.year}-${currentUserData.month}-${currentUserData.day}-${currentUserData.gender}` : '',
+      birth_info: currentUserData ? `${currentUserData.year}-${currentUserData.month}-${currentUserData.day}-${currentUserData.gender}${currentUserData.hour != null ? `-${currentUserData.hour}-${currentUserData.minute || 0}` : ''}` : '',
       question: currentUserData?.question || '',
       judgment: result.message || result.aiJudgment?.reason || '',
       rounds: (result.rounds || []).map((r, i) => {
