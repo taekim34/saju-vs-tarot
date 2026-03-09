@@ -135,12 +135,13 @@
       // 승자
       const winnerIcon = data.winner === 'saju' ? '\u{1F3EE}' : '\u{1F52E}';
       const winnerName = data.winner === 'saju' ? '사주' : '타로';
+      const loserName = data.winner === 'saju' ? '타로' : '사주';
       const winnerDiv = createEl('div', 'shared-winner');
       winnerDiv.appendChild(createEl('div', 'winner-icon crown-bounce', winnerIcon));
       winnerDiv.appendChild(createEl('div', 'winner-name winner-reveal', `${winnerName} 승리!`));
       container.appendChild(winnerDiv);
 
-      // 점수
+      // 점수 + 친절한 설명
       const [sajuScore, tarotScore] = (data.scores || '0-0').split('-');
       const scoreDiv = createEl('div', 'shared-score');
       const scoreRow = createEl('div', 'score-display');
@@ -148,6 +149,8 @@
       scoreRow.appendChild(createEl('span', 'score-vs', ':'));
       scoreRow.appendChild(createEl('span', 'score-tarot score-count', `${tarotScore} \u{1F52E}`));
       scoreDiv.appendChild(scoreRow);
+      scoreDiv.appendChild(createEl('div', 'shared-caption',
+        `3라운드 투표에서 ${winnerName}의 해석이 ${loserName}보다 더 공감을 얻었어요`));
       container.appendChild(scoreDiv);
 
       // 사주 명식표 (첫 라운드 데이터에서)
@@ -157,11 +160,20 @@
       if (sajuPillars) {
         const chartSection = createEl('div', 'shared-saju-section');
         chartSection.appendChild(createEl('h3', 'shared-section-title', '\u{1F3EE} 사주 명식'));
+        chartSection.appendChild(createEl('p', 'shared-caption',
+          '생년월일을 기반으로 계산한 사주팔자입니다. 네 기둥(년/월/일/시)의 한자가 타고난 운명을 나타내요'));
         const chartContainer = createEl('div', 'saju-chart');
         renderSajuChart(chartContainer, { pillars: sajuPillars, elements: sajuElements });
         chartSection.appendChild(chartContainer);
         container.appendChild(chartSection);
       }
+
+      // 라운드별 설명 텍스트
+      const topicDesc = {
+        '\uC5F0\uC560\uC6B4': '사랑과 인간관계에 대한 운세를 동양과 서양이 각각 풀이했어요',
+        '\uC7AC\uBB3C\uC6B4': '돈과 재물에 관한 흐름을 두 관점에서 비교했어요',
+        '\uC885\uD569\uC6B4\uC138': '올해의 전체적인 운세를 종합적으로 판단했어요'
+      };
 
       // 라운드별 — 선택된 쪽만 표시
       rounds.forEach((r, i) => {
@@ -177,14 +189,24 @@
         header.appendChild(badge);
         roundSection.appendChild(header);
 
+        // 친절한 라운드 설명
+        const desc = topicDesc[r.topic];
+        if (desc) {
+          roundSection.appendChild(createEl('p', 'shared-caption', desc));
+        }
+
         if (isSaju) {
-          // 사주 해석
+          roundSection.appendChild(createEl('p', 'shared-method-note',
+            '\u{1F3EE} 사주: 생년월일의 천간/지지를 분석하여 운의 흐름을 읽어줍니다'));
           const readingBox = createEl('div', 'shared-content-box saju-accent');
           (r.sajuReading || '').split('\n').filter(l => l.trim()).forEach(line => {
             readingBox.appendChild(createEl('p', 'shared-content-text', line));
           });
           roundSection.appendChild(readingBox);
         } else {
+          roundSection.appendChild(createEl('p', 'shared-method-note',
+            '\u{1F52E} 타로: 무의식이 이끄는 카드를 뽑아 현재 에너지를 읽어줍니다'));
+
           // 타로 카드 이미지
           if (r.tarotCards && r.tarotCards.length > 0) {
             const cardsContainer = createEl('div', 'shared-tarot-cards');
@@ -203,20 +225,25 @@
                 cardEl.appendChild(createEl('div', 'shared-card-pos', card.position));
               }
               if (card.direction) {
-                cardEl.appendChild(createEl('div', 'shared-card-dir', card.direction));
+                cardEl.appendChild(createEl('div', 'shared-card-dir',
+                  card.isReversed ? '역방향 (숨겨진 의미)' : '정방향'));
               }
               cardsContainer.appendChild(cardEl);
             });
             roundSection.appendChild(cardsContainer);
           }
 
-          // 타로 해석
           const readingBox = createEl('div', 'shared-content-box tarot-accent');
           (r.tarotReading || '').split('\n').filter(l => l.trim()).forEach(line => {
             readingBox.appendChild(createEl('p', 'shared-content-text', line));
           });
           roundSection.appendChild(readingBox);
         }
+
+        // 투표 결과 설명
+        const votedName = isSaju ? '사주' : '타로';
+        roundSection.appendChild(createEl('p', 'shared-vote-result',
+          `\u{2705} 이 라운드에서는 ${votedName}의 해석에 더 공감했어요`));
 
         container.appendChild(roundSection);
       });
@@ -225,11 +252,13 @@
       if (data.judgment) {
         const judgeDiv = createEl('div', 'shared-judgment');
         judgeDiv.appendChild(createEl('h3', 'shared-section-title', '\u{2696}\u{FE0F} AI 심판의 한마디'));
+        judgeDiv.appendChild(createEl('p', 'shared-caption',
+          'AI가 양쪽의 해석 품질, 구체성, 논리성을 종합 평가한 최종 판정이에요'));
         judgeDiv.appendChild(createEl('p', 'shared-judgment-text', data.judgment));
         container.appendChild(judgeDiv);
       }
 
-      // CTA
+      // CTA + 역대 전적
       const ctaDiv = createEl('div', 'shared-cta');
       ctaDiv.appendChild(createEl('p', 'shared-cta-text', '나도 사주 vs 타로 운명의 대결을 해보고 싶다면?'));
       const ctaBtn = createEl('button', 'btn-primary btn-glow', '나도 해보기');
@@ -237,6 +266,13 @@
         window.location.href = window.location.href.split('?')[0];
       });
       ctaDiv.appendChild(ctaBtn);
+
+      const statsBtn = createEl('button', 'btn-stats-link', '\u{1F4CA} 역대 전적 보기');
+      statsBtn.addEventListener('click', () => {
+        showSection('stats');
+        StatsManager.loadAndRender($('#stats-content'));
+      });
+      ctaDiv.appendChild(statsBtn);
       container.appendChild(ctaDiv);
     } catch (e) {
       console.error('공유 결과 로드 실패:', e);
@@ -344,13 +380,17 @@
     });
 
     // 통계 페이지
-    const btnStats = $('#btn-stats');
-    if (btnStats) {
-      btnStats.addEventListener('click', () => {
-        showSection('stats');
-        StatsManager.loadAndRender($('#stats-content'));
-      });
+    function openStats() {
+      showSection('stats');
+      StatsManager.loadAndRender($('#stats-content'));
     }
+
+    const btnStats = $('#btn-stats');
+    if (btnStats) btnStats.addEventListener('click', openStats);
+
+    const btnResultStats = $('#btn-result-stats');
+    if (btnResultStats) btnResultStats.addEventListener('click', openStats);
+
     const btnStatsBack = $('#btn-stats-back');
     if (btnStatsBack) {
       btnStatsBack.addEventListener('click', () => showSection('intro'));
@@ -566,8 +606,9 @@
     scoreRow.appendChild(createEl('span', 'score-vs', ':'));
     scoreRow.appendChild(createEl('span', 'score-tarot score-count', `${result.voteDetail.tarot} \u{1F52E}`));
     resultScore.appendChild(scoreRow);
+    const winDetail = result.winner === 'saju' ? '사주' : '타로';
     const detailEl = createEl('div', 'score-detail',
-      `3라운드 투표 결과`);
+      `3라운드 투표에서 ${winDetail}의 해석이 더 공감을 얻었어요`);
     resultScore.appendChild(detailEl);
 
     // 라운드별 요약
@@ -619,6 +660,9 @@
     };
 
     ShareManager.setResult(shareData);
+
+    // 자동 저장 (통계용 — 공유 안 해도 기록 남김)
+    ShareManager.getShareUrl().catch(e => console.warn('자동 저장 실패:', e));
   }
 
   // ===== 리딩 텍스트 렌더 (safe DOM) =====

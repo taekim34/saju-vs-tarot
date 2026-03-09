@@ -891,6 +891,35 @@ body {
   padding: 14px 48px;
 }
 
+.shared-cta .btn-stats-link {
+  margin-top: 12px;
+}
+
+/* 친절한 설명 캡션 */
+.shared-caption {
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+
+.shared-method-note {
+  font-size: 0.78rem;
+  color: var(--color-text-dim);
+  opacity: 0.8;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.shared-vote-result {
+  font-size: 0.8rem;
+  color: var(--color-success);
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
 .result-message {
   background: rgba(255, 215, 0, 0.08);
   border: 1px solid rgba(255, 215, 0, 0.2);
