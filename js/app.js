@@ -1020,75 +1020,147 @@
 
     const wrap = createEl('div', 'info-panel');
 
-    // 신강/신약
-    if (sajuResult.strength) {
-      const s = sajuResult.strength;
-      const tag = createEl('div', 'info-tag info-tag-strength');
-      tag.appendChild(createEl('span', 'info-tag-label', '신강/신약'));
-      tag.appendChild(createEl('span', 'info-tag-value', s.result + ' (' + s.score + '점)'));
-      wrap.appendChild(tag);
-    }
-
-    // 일간
+    // 일간 + 신강/신약 + 격국
+    const topRow = createEl('div', 'info-row');
     if (sajuResult.dayMasterInfo) {
-      const dm = sajuResult.dayMasterInfo;
       const el = sajuResult.dayMasterElement || '';
       const yy = sajuResult.dayMasterYinYang || '';
-      const tag = createEl('div', 'info-tag');
-      tag.appendChild(createEl('span', 'info-tag-label', '일간'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        sajuResult.dayMaster + ' ' + (dm.korean || '') + ' (' + el + '/' + yy + ')'));
-      wrap.appendChild(tag);
+      addTag(topRow, '일간', sajuResult.dayMaster + ' (' + el + '/' + yy + ')');
+    }
+    if (sajuResult.strength) {
+      addTag(topRow, '체질', sajuResult.strength, 'info-tag-strength');
+    }
+    if (sajuResult.tenGodStats && sajuResult.tenGodStats.geukguk) {
+      addTag(topRow, '격국', sajuResult.tenGodStats.geukguk.description);
+    }
+    wrap.appendChild(topRow);
+
+    // 십성 분포
+    if (sajuResult.tenGodStats) {
+      const tRow = createEl('div', 'info-row');
+      const gs = sajuResult.tenGodStats.groups;
+      Object.entries(gs).forEach(([name, count]) => {
+        const cls = count === 0 ? 'info-tag-dim' : (count >= 3 ? 'info-tag-hot' : '');
+        addTag(tRow, name.split('(')[0], count + '개', cls);
+      });
+      wrap.appendChild(tRow);
     }
 
-    // 충
-    if (sajuResult.chung && sajuResult.chung.length > 0) {
-      const tag = createEl('div', 'info-tag info-tag-warn');
-      tag.appendChild(createEl('span', 'info-tag-label', '충(冲)'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        sajuResult.chung.map(c => c.pair + ' ' + c.type).join(', ')));
-      wrap.appendChild(tag);
-    }
-
-    // 합
-    if (sajuResult.hap && sajuResult.hap.length > 0) {
-      const tag = createEl('div', 'info-tag info-tag-good');
-      tag.appendChild(createEl('span', 'info-tag-label', '합(合)'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        sajuResult.hap.map(h => h.pair + ' ' + h.type).join(', ')));
-      wrap.appendChild(tag);
-    }
-
-    // 특수 신살
+    // 신살 — 길성(귀인/록)
     if (sajuResult.specialStars && sajuResult.specialStars.length > 0) {
-      const tag = createEl('div', 'info-tag');
-      tag.appendChild(createEl('span', 'info-tag-label', '특수살'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        sajuResult.specialStars.map(s => s.name).join(', ')));
-      wrap.appendChild(tag);
+      const guiin = sajuResult.specialStars.filter(s => s.type === '귀인' || s.type === '록');
+      const sal = sajuResult.specialStars.filter(s => s.type === '살');
+      if (guiin.length > 0) {
+        const gRow = createEl('div', 'info-row');
+        guiin.forEach(s => addTag(gRow, s.name, s.meaning, 'info-tag-good'));
+        wrap.appendChild(gRow);
+      }
+      if (sal.length > 0) {
+        const sRow = createEl('div', 'info-row');
+        sal.forEach(s => addTag(sRow, s.name, s.meaning, 'info-tag-warn'));
+        wrap.appendChild(sRow);
+      }
     }
 
-    // 세운
+    // 충/합
+    const chRow = createEl('div', 'info-row');
+    if (sajuResult.chung && sajuResult.chung.length > 0) {
+      sajuResult.chung.forEach(c => addTag(chRow, '충', c.pair, 'info-tag-warn'));
+    }
+    if (sajuResult.hap) {
+      const allHap = [
+        ...(sajuResult.hap.yukhap || []).map(h => h.pair + '→' + h.element),
+        ...(sajuResult.hap.samhap || []).map(h => h.branches.join('')),
+        ...(sajuResult.hap.banhap || []).map(h => h.branches.join(''))
+      ];
+      allHap.forEach(h => addTag(chRow, '합', h, 'info-tag-good'));
+    }
+    if (chRow.childNodes.length > 0) wrap.appendChild(chRow);
+
+    // 세운 + 대운
+    const uRow = createEl('div', 'info-row');
     if (sajuResult.seun) {
       const se = sajuResult.seun;
-      const tag = createEl('div', 'info-tag');
-      tag.appendChild(createEl('span', 'info-tag-label', se.year + '세운'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        se.stem + se.branch + ' (' + se.stemTenGod + '/' + se.branchTenGod + ')'));
-      wrap.appendChild(tag);
+      addTag(uRow, se.year + '세운', se.stem + se.branch + ' (' + se.stemTenGod + '/' + se.branchTenGod + ')');
     }
-
-    // 대운
     if (sajuResult.daeun && sajuResult.daeun.current) {
       const d = sajuResult.daeun.current;
-      const tag = createEl('div', 'info-tag');
-      tag.appendChild(createEl('span', 'info-tag-label', '현재 대운'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        d.stem + d.branch + ' (' + d.startAge + '~' + (d.startAge + 9) + '세)'));
-      wrap.appendChild(tag);
+      addTag(uRow, '현재대운', d.stem + d.branch + ' (' + d.startAge + '~' + (d.startAge + 9) + '세)');
     }
+    wrap.appendChild(uRow);
 
     container.appendChild(wrap);
+
+    // 오행 생극 관계도 (SVG)
+    if (sajuResult.dayMasterElement) {
+      container.appendChild(renderOhangGraph(sajuResult.dayMasterElement, sajuResult.elements));
+    }
+  }
+
+  function addTag(parent, label, value, cls) {
+    const tag = createEl('div', 'info-tag ' + (cls || ''));
+    tag.appendChild(createEl('span', 'info-tag-label', label));
+    tag.appendChild(createEl('span', 'info-tag-value', String(value)));
+    parent.appendChild(tag);
+  }
+
+  // 오행 생극 관계도 SVG
+  function renderOhangGraph(myElement, elements) {
+    const size = 160;
+    const cx = size / 2, cy = size / 2, r = 50;
+    const ohang = ['목', '화', '토', '금', '수'];
+    const ohangHanja = { '목': '木', '화': '火', '토': '土', '금': '金', '수': '水' };
+    const colors = { '목': '#81c784', '화': '#ef9a9a', '토': '#ffd54f', '금': '#e0e0e0', '수': '#90caf9' };
+    const sangSaeng = { '목': '화', '화': '토', '토': '금', '금': '수', '수': '목' };
+    const sangGeuk = { '목': '토', '토': '수', '수': '화', '화': '금', '금': '목' };
+
+    // 오각형 좌표 (상단부터 시계방향: 화-토-금-수-목)
+    // 전통 배치: 상=화, 우하=토, 우상=금... → 별모양
+    const order = ['화', '토', '금', '수', '목'];
+    const pos = {};
+    order.forEach((el, i) => {
+      const angle = -Math.PI / 2 + (2 * Math.PI * i) / 5;
+      pos[el] = { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+    });
+
+    let svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" class="ohang-svg">';
+
+    // 상생 화살표 (원형, 얇은 선)
+    ohang.forEach(el => {
+      const from = pos[el], to = pos[sangSaeng[el]];
+      svg += '<line x1="' + from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '" stroke="#555" stroke-width="0.8" stroke-dasharray="3,2"/>';
+    });
+
+    // 상극 화살표 (별모양, 빨간 점선)
+    ohang.forEach(el => {
+      const from = pos[el], to = pos[sangGeuk[el]];
+      if (el === myElement) {
+        svg += '<line x1="' + from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '" stroke="rgba(244,67,54,0.4)" stroke-width="1" stroke-dasharray="2,2"/>';
+      }
+    });
+
+    // 노드
+    ohang.forEach(el => {
+      const p = pos[el];
+      const isMe = el === myElement;
+      const count = elements ? (elements[el] || 0) : 0;
+      const nodeR = isMe ? 18 : 12 + Math.min(count, 4) * 1.5;
+      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + nodeR + '" fill="' + colors[el] + '" opacity="' + (isMe ? '0.9' : '0.5') + '" stroke="' + (isMe ? '#fff' : 'none') + '" stroke-width="' + (isMe ? '2' : '0') + '"/>';
+      svg += '<text x="' + p.x + '" y="' + (p.y + 1) + '" text-anchor="middle" dominant-baseline="central" fill="#000" font-size="' + (isMe ? '11' : '9') + '" font-weight="' + (isMe ? '900' : '600') + '">' + ohangHanja[el] + '</text>';
+      // 개수 표시
+      if (count > 0) {
+        svg += '<text x="' + p.x + '" y="' + (p.y + (isMe ? 12 : 10)) + '" text-anchor="middle" fill="' + colors[el] + '" font-size="7">' + count + '</text>';
+      }
+    });
+
+    // 범례
+    svg += '<text x="' + cx + '" y="' + (size - 4) + '" text-anchor="middle" fill="#888" font-size="6">── 상생  - - 상극(나→)</text>';
+
+    svg += '</svg>';
+
+    const div = createEl('div', 'ohang-graph');
+    div.innerHTML = svg; // SVG는 안전 (하드코딩된 값만 사용)
+    return div;
   }
 
   // ===== 타로 분석 정보 패널 =====

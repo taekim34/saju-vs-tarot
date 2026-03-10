@@ -654,8 +654,37 @@ body {
   color: #81c784;
 }
 
+.info-tag-dim {
+  opacity: 0.35;
+}
+
+.info-tag-hot {
+  border-color: rgba(255, 152, 0, 0.4);
+}
+.info-tag-hot .info-tag-value {
+  color: #ffcc80;
+  font-weight: 700;
+}
+
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+}
+
 .saju-info, .tarot-info {
   margin: 0 2px;
+}
+
+/* 오행 생극 관계도 */
+.ohang-graph {
+  margin: 6px auto;
+  text-align: center;
+}
+.ohang-svg {
+  width: 150px;
+  height: 150px;
 }
 
 .panel-tarot {

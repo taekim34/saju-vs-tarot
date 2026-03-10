@@ -593,15 +593,76 @@ const SajuEngine = (() => {
   }
 
   // ============================================================
-  // 특수살 (도화살 + 홍염살 + 역마살)
+  // 십성 집계 + 격국 판단
+  // ============================================================
+
+  function analyzeTenGodStats(tenGods, dayMaster, pillars) {
+    // 십성별 개수 집계
+    const counts = {};
+    tenGods.forEach(t => {
+      counts[t.tenGod] = (counts[t.tenGod] || 0) + 1;
+    });
+
+    // 십성 그룹별 집계
+    const groups = {
+      '비겁(자아)': (counts['비견'] || 0) + (counts['겁재'] || 0),
+      '식상(표현)': (counts['식신'] || 0) + (counts['상관'] || 0),
+      '재성(재물)': (counts['편재'] || 0) + (counts['정재'] || 0),
+      '관성(직업)': (counts['편관'] || 0) + (counts['정관'] || 0),
+      '인성(학문)': (counts['편인'] || 0) + (counts['정인'] || 0)
+    };
+
+    // 가장 강한 십성 그룹
+    const sorted = Object.entries(groups).sort((a, b) => b[1] - a[1]);
+    const dominant = sorted[0];
+    const weakest = sorted.filter(s => s[1] === 0).map(s => s[0]);
+
+    // 간이 격국 판단 (월지 정기 기준)
+    const monthBranch = pillars.month.jiji;
+    const monthMainStem = {
+      '子': '癸', '丑': '己', '寅': '甲', '卯': '乙', '辰': '戊', '巳': '丙',
+      '午': '丁', '未': '己', '申': '庚', '酉': '辛', '戌': '戊', '亥': '壬'
+    }[monthBranch];
+    const monthTenGod = monthMainStem ? getTenGod(dayMaster, monthMainStem, true) : '';
+
+    const geukgukMap = {
+      '비견': '비견격 — 자립심 강한 독립형',
+      '겁재': '겁재격 — 경쟁심 강한 도전형',
+      '식신': '식신격 — 재능 풍부한 표현형',
+      '상관': '상관격 — 창의적이고 자유분방',
+      '편재': '편재격 — 사업수완, 큰 재물 감각',
+      '정재': '정재격 — 꾸준한 저축형 재물',
+      '편관': '편관격 — 권위와 추진력',
+      '정관': '정관격 — 안정적 직장인형',
+      '편인': '편인격 — 독창적 사고, 전문 분야',
+      '정인': '정인격 — 학문·교육 중시, 모범형'
+    };
+
+    return {
+      counts,
+      groups,
+      dominant: dominant ? { name: dominant[0], count: dominant[1] } : null,
+      weakest,
+      geukguk: monthTenGod ? { tenGod: monthTenGod, description: geukgukMap[monthTenGod] || monthTenGod + '격' } : null
+    };
+  }
+
+  // ============================================================
+  // 신살/길성 확장 (귀인, 살, 록)
   // ============================================================
 
   function checkSpecialStars(pillars) {
     const stars = [];
+    const dayStem = pillars.day.cheongan;
     const dayBranch = pillars.day.jiji;
+    const allStems = [pillars.year.cheongan, pillars.month.cheongan, pillars.day.cheongan];
     const allBranches = [pillars.year.jiji, pillars.month.jiji, pillars.day.jiji];
-    if (pillars.hour) allBranches.push(pillars.hour.jiji);
+    if (pillars.hour) {
+      allStems.push(pillars.hour.cheongan);
+      allBranches.push(pillars.hour.jiji);
+    }
 
+    // 도화살 (일지 기준)
     const doHwaMap = {
       '寅': '卯', '午': '卯', '戌': '卯',
       '巳': '午', '酉': '午', '丑': '午',
@@ -609,17 +670,19 @@ const SajuEngine = (() => {
       '亥': '子', '卯': '子', '未': '子'
     };
     if (doHwaMap[dayBranch] && allBranches.includes(doHwaMap[dayBranch])) {
-      stars.push({ name: '도화살', meaning: '이성에게 매력적, 연애 기운 강함' });
+      stars.push({ name: '도화살', meaning: '이성에게 매력적, 연애 기운 강함', type: '살' });
     }
 
+    // 홍염살 (일간 기준)
     const hongYeomMap = {
       '甲': '午', '乙': '申', '丙': '寅', '丁': '未', '戊': '辰',
       '己': '辰', '庚': '戌', '辛': '酉', '壬': '子', '癸': '申'
     };
-    if (hongYeomMap[pillars.day.cheongan] && allBranches.includes(hongYeomMap[pillars.day.cheongan])) {
-      stars.push({ name: '홍염살', meaning: '강렬한 매력, 깊은 사랑 경험' });
+    if (hongYeomMap[dayStem] && allBranches.includes(hongYeomMap[dayStem])) {
+      stars.push({ name: '홍염살', meaning: '강렬한 매력, 깊은 사랑 경험', type: '살' });
     }
 
+    // 역마살 (일지 기준)
     const yeokmaMap = {
       '寅': '申', '午': '申', '戌': '申',
       '巳': '亥', '酉': '亥', '丑': '亥',
@@ -627,7 +690,64 @@ const SajuEngine = (() => {
       '亥': '巳', '卯': '巳', '未': '巳'
     };
     if (yeokmaMap[dayBranch] && allBranches.includes(yeokmaMap[dayBranch])) {
-      stars.push({ name: '역마살', meaning: '이동, 변화, 해외 인연' });
+      stars.push({ name: '역마살', meaning: '이동, 변화, 해외 인연', type: '살' });
+    }
+
+    // 양인살 (일간 기준, 양간만 해당)
+    const yangInMap = { '甲': '卯', '丙': '午', '戊': '午', '庚': '酉', '壬': '子' };
+    if (yangInMap[dayStem] && allBranches.includes(yangInMap[dayStem])) {
+      stars.push({ name: '양인살', meaning: '강한 추진력, 과감한 결단력. 통제 필요', type: '살' });
+    }
+
+    // 천을귀인 (일간 기준, 가장 중요한 길성)
+    const cheonEulMap = {
+      '甲': ['丑','未'], '戊': ['丑','未'], '庚': ['丑','未'],
+      '乙': ['子','申'], '己': ['子','申'],
+      '丙': ['酉','亥'], '丁': ['酉','亥'],
+      '壬': ['卯','巳'], '癸': ['卯','巳'],
+      '辛': ['寅','午']
+    };
+    const ceTargets = cheonEulMap[dayStem] || [];
+    if (ceTargets.some(t => allBranches.includes(t))) {
+      stars.push({ name: '천을귀인', meaning: '위기에 귀인의 도움, 사회적 인복', type: '귀인' });
+    }
+
+    // 문창귀인 (일간 기준)
+    const munChangMap = { '甲': '巳', '乙': '午', '丙': '申', '丁': '酉', '戊': '申', '己': '酉', '庚': '亥', '辛': '子', '壬': '寅', '癸': '卯' };
+    if (munChangMap[dayStem] && allBranches.includes(munChangMap[dayStem])) {
+      stars.push({ name: '문창귀인', meaning: '학문 재능, 시험운, 문서운 좋음', type: '귀인' });
+    }
+
+    // 천덕귀인 (월지 기준)
+    const cheonDeokMap = { '寅': '丁', '卯': '申', '辰': '壬', '巳': '辛', '午': '亥', '未': '甲', '申': '癸', '酉': '寅', '戌': '丙', '亥': '乙', '子': '巳', '丑': '庚' };
+    const cdTarget = cheonDeokMap[pillars.month.jiji];
+    if (cdTarget && (allStems.includes(cdTarget) || allBranches.includes(cdTarget))) {
+      stars.push({ name: '천덕귀인', meaning: '하늘의 덕, 재난 면함, 선한 성품', type: '귀인' });
+    }
+
+    // 월덕귀인 (월지 기준)
+    const wolDeokMap = { '寅': '丙', '午': '丙', '戌': '丙', '申': '壬', '子': '壬', '辰': '壬', '巳': '庚', '酉': '庚', '丑': '庚', '亥': '甲', '卯': '甲', '未': '甲' };
+    const wdTarget = wolDeokMap[pillars.month.jiji];
+    if (wdTarget && allStems.includes(wdTarget)) {
+      stars.push({ name: '월덕귀인', meaning: '매달 복이 따름, 관재·질병 면함', type: '귀인' });
+    }
+
+    // 건록 (일간 기준)
+    const geonRokMap = { '甲': '寅', '乙': '卯', '丙': '巳', '丁': '午', '戊': '巳', '己': '午', '庚': '申', '辛': '酉', '壬': '亥', '癸': '子' };
+    if (geonRokMap[dayStem] && allBranches.includes(geonRokMap[dayStem])) {
+      stars.push({ name: '건록', meaning: '자수성가, 독립적 성공, 안정적 재물', type: '록' });
+    }
+
+    // 학당귀인 (일간 기준)
+    const hakDangMap = { '甲': '亥', '乙': '亥', '丙': '寅', '丁': '寅', '戊': '寅', '己': '寅', '庚': '巳', '辛': '巳', '壬': '申', '癸': '申' };
+    if (hakDangMap[dayStem] && allBranches.includes(hakDangMap[dayStem])) {
+      stars.push({ name: '학당귀인', meaning: '학문·연구 능력 우수, 지적 호기심', type: '귀인' });
+    }
+
+    // 금여록 (일간 기준)
+    const geumYeoMap = { '甲': '辰', '乙': '巳', '丙': '未', '丁': '申', '戊': '未', '己': '申', '庚': '戌', '辛': '亥', '壬': '丑', '癸': '寅' };
+    if (geumYeoMap[dayStem] && allBranches.includes(geumYeoMap[dayStem])) {
+      stars.push({ name: '금여록', meaning: '배우자 복, 결혼 후 안정, 이성 인연 좋음', type: '귀인' });
     }
 
     return stars;
@@ -737,6 +857,7 @@ const SajuEngine = (() => {
     const seun = calculateSeun(dayMaster, pillars);
     const daeun = calculateDaeun(birthDate, gender, yearPillar, monthPillar);
     const twelveSinsal = calculateTwelveSinsal(pillars);
+    const tenGodStats = analyzeTenGodStats(tenGods, dayMaster, pillars);
 
     return {
       pillars,
@@ -750,6 +871,7 @@ const SajuEngine = (() => {
       tenGods,
       twelveStages,
       twelveSinsal,
+      tenGodStats,
       strength,
       specialStars,
       chung,
@@ -758,7 +880,7 @@ const SajuEngine = (() => {
       daeun,
       gender,
       hasHourPillar: !!hourPillar,
-      summary: buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar, twelveSinsal)
+      summary: buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar, twelveSinsal, tenGodStats)
     };
   }
 
@@ -766,7 +888,7 @@ const SajuEngine = (() => {
   // AI 프롬프트용 요약 (전면 강화)
   // ============================================================
 
-  function buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar, twelveSinsal) {
+  function buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar, twelveSinsal, tenGodStats) {
     const yi = getCheonganInfo(pillars.year.cheongan);
     const yj = getJijiInfo(pillars.year.jiji);
     const mi = getCheonganInfo(pillars.month.cheongan);
@@ -829,9 +951,25 @@ const SajuEngine = (() => {
       text += `12운성: ${twelveStages.map(ts => `${ts.position}=${ts.stage}`).join(', ')}\n`;
     }
 
-    // 특수살
+    // 신살/길성
     if (specialStars.length > 0) {
-      text += `특수살: ${specialStars.map(s => `${s.name}(${s.meaning})`).join(', ')}\n`;
+      const guiin = specialStars.filter(s => s.type === '귀인' || s.type === '록');
+      const sal = specialStars.filter(s => s.type === '살');
+      if (guiin.length > 0) {
+        text += `길성(귀인/록): ${guiin.map(s => `${s.name}(${s.meaning})`).join(', ')}\n`;
+      }
+      if (sal.length > 0) {
+        text += `흉살: ${sal.map(s => `${s.name}(${s.meaning})`).join(', ')}\n`;
+      }
+    }
+
+    // 십성 집계 + 격국
+    if (tenGodStats) {
+      const gc = tenGodStats.groups;
+      text += `\n【십성 분포】 ${Object.entries(gc).map(([k, v]) => `${k}=${v}`).join(', ')}\n`;
+      if (tenGodStats.dominant) text += `  최강: ${tenGodStats.dominant.name}(${tenGodStats.dominant.count}개)\n`;
+      if (tenGodStats.weakest.length > 0) text += `  부재: ${tenGodStats.weakest.join(', ')}\n`;
+      if (tenGodStats.geukguk) text += `  격국: ${tenGodStats.geukguk.description}\n`;
     }
 
     // 충
