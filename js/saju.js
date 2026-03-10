@@ -750,6 +750,144 @@ const SajuEngine = (() => {
       stars.push({ name: '금여록', meaning: '배우자 복, 결혼 후 안정, 이성 인연 좋음', type: '귀인' });
     }
 
+    // 태극귀인 (일간 기준)
+    const taeGeukMap = {
+      '甲': ['子','午'], '己': ['子','午'],
+      '乙': ['卯','酉'], '庚': ['卯','酉'],
+      '丙': ['丑','未'], '辛': ['丑','未'],
+      '丁': ['寅','申'], '壬': ['寅','申'],
+      '戊': ['巳','亥'], '癸': ['巳','亥']
+    };
+    if ((taeGeukMap[dayStem] || []).some(t => allBranches.includes(t))) {
+      stars.push({ name: '태극귀인', meaning: '큰 일을 이루는 기운, 위기를 기회로 바꿈', type: '귀인' });
+    }
+
+    // 삼기귀인 (천간 3연속: 甲戊庚/乙丙丁/壬癸辛)
+    const samgiSets = [['甲','戊','庚'], ['乙','丙','丁'], ['壬','癸','辛']];
+    samgiSets.forEach(set => {
+      if (set.every(s => allStems.includes(s))) {
+        stars.push({ name: '삼기귀인', meaning: '하늘이 내린 세 가지 기운, 비범한 재능', type: '귀인' });
+      }
+    });
+
+    // 천관귀인 (일간 기준)
+    const cheonGwanMap = { '甲': '未', '乙': '辰', '丙': '酉', '丁': '亥', '戊': '酉', '己': '亥', '庚': '丑', '辛': '寅', '壬': '卯', '癸': '巳' };
+    if (cheonGwanMap[dayStem] && allBranches.includes(cheonGwanMap[dayStem])) {
+      stars.push({ name: '천관귀인', meaning: '관직·승진운, 사회적 지위 상승', type: '귀인' });
+    }
+
+    // 천주귀인 (일간 기준)
+    const cheonJuMap = { '甲': '酉', '乙': '申', '丙': '子', '丁': '亥', '戊': '子', '己': '亥', '庚': '卯', '辛': '寅', '壬': '午', '癸': '巳' };
+    if (cheonJuMap[dayStem] && allBranches.includes(cheonJuMap[dayStem])) {
+      stars.push({ name: '천주귀인', meaning: '주방·요리·음식 관련 재능, 먹고사는 복', type: '귀인' });
+    }
+
+    // 천의성 (일간 기준)
+    const cheonUiMap = { '甲': '丑', '乙': '子', '丙': '卯', '丁': '寅', '戊': '卯', '己': '寅', '庚': '巳', '辛': '辰', '壬': '未', '癸': '午' };
+    if (cheonUiMap[dayStem] && allBranches.includes(cheonUiMap[dayStem])) {
+      stars.push({ name: '천의성', meaning: '의학·치유 재능, 건강 관련 직업 적성', type: '성' });
+    }
+
+    // 천문성 (일간 기준) — 학문·연구의 별
+    const cheonMunMap = { '甲': '亥', '乙': '子', '丙': '寅', '丁': '卯', '戊': '寅', '己': '卯', '庚': '巳', '辛': '午', '壬': '申', '癸': '酉' };
+    if (cheonMunMap[dayStem] && allBranches.includes(cheonMunMap[dayStem])) {
+      stars.push({ name: '천문성', meaning: '학문·철학·종교에 깊은 관심, 정신세계 발달', type: '성' });
+    }
+
+    // 괴강살 (일주 기준: 戊辰, 壬辰, 庚辰, 庚戌)
+    const gwaeGangPairs = ['戊辰', '壬辰', '庚辰', '庚戌'];
+    if (gwaeGangPairs.includes(dayStem + dayBranch)) {
+      stars.push({ name: '괴강살', meaning: '강한 카리스마와 결단력, 리더십. 극과 극의 성격', type: '살' });
+    }
+
+    // 백호살 (일지 기준)
+    const baekHoMap = {
+      '寅': '申', '卯': '辰', '辰': '寅', '巳': '酉', '午': '戌', '未': '丑',
+      '申': '寅', '酉': '巳', '戌': '午', '亥': '未', '子': '午', '丑': '未'
+    };
+    if (baekHoMap[dayBranch] && allBranches.includes(baekHoMap[dayBranch])) {
+      stars.push({ name: '백호살', meaning: '외과수술, 유혈사고 주의. 의료·군·경 적성', type: '살' });
+    }
+
+    // 고신살 (년지 기준) — 외로움의 살
+    const goSinMap = { '寅': '巳', '卯': '巳', '辰': '巳', '巳': '申', '午': '申', '未': '申', '申': '亥', '酉': '亥', '戌': '亥', '亥': '寅', '子': '寅', '丑': '寅' };
+    if (goSinMap[pillars.year.jiji] && allBranches.includes(goSinMap[pillars.year.jiji])) {
+      stars.push({ name: '고신살', meaning: '홀로 있는 시간이 많음, 독립적 성향', type: '살' });
+    }
+
+    // 과숙살 (년지 기준) — 외로움의 살 (고신살의 짝)
+    const gwaSukMap = { '寅': '丑', '卯': '丑', '辰': '丑', '巳': '辰', '午': '辰', '未': '辰', '申': '未', '酉': '未', '戌': '未', '亥': '戌', '子': '戌', '丑': '戌' };
+    if (gwaSukMap[pillars.year.jiji] && allBranches.includes(gwaSukMap[pillars.year.jiji])) {
+      stars.push({ name: '과숙살', meaning: '배우자와 인연이 늦거나 고독한 시기 존재', type: '살' });
+    }
+
+    // 현침살 (일간 기준) — 기술·예술의 살
+    const hyunChimMap = { '甲': '酉', '乙': '申', '丙': '亥', '丁': '亥', '戊': '亥', '己': '亥', '庚': '寅', '辛': '寅', '壬': '巳', '癸': '巳' };
+    if (hyunChimMap[dayStem] && allBranches.includes(hyunChimMap[dayStem])) {
+      stars.push({ name: '현침살', meaning: '손재주·기술·예술 재능. 침술·바느질·공예 적성', type: '살' });
+    }
+
+    // 원진살 (일지 기준) — 인간관계 갈등
+    const wonJinMap = { '子': '未', '丑': '午', '寅': '巳', '卯': '辰', '辰': '卯', '巳': '寅', '午': '丑', '未': '子', '申': '亥', '酉': '戌', '戌': '酉', '亥': '申' };
+    if (wonJinMap[dayBranch] && allBranches.includes(wonJinMap[dayBranch])) {
+      stars.push({ name: '원진살', meaning: '가까운 사이에서 갈등, 미워하면서 끌리는 관계', type: '살' });
+    }
+
+    // 공망 (일주 기준, 갑자순 10간 배열에서 빠진 2지지)
+    const dayPillarIdx = (CHEONGAN.indexOf(dayStem) + JIJI.indexOf(dayBranch) * 0) || 0;
+    // 60갑자에서 일주 위치 찾기
+    const stemIdx = CHEONGAN.indexOf(dayStem);
+    const branchIdx = JIJI.indexOf(dayBranch);
+    // 갑자순 시작점: 일간 인덱스만큼 뒤로 가면 해당 순의 甲 위치
+    const gongBranch1 = JIJI[(branchIdx - stemIdx + 10 + 12) % 12];
+    const gongBranch2 = JIJI[(branchIdx - stemIdx + 11 + 12) % 12];
+    if (allBranches.includes(gongBranch1) || allBranches.includes(gongBranch2)) {
+      const gongList = [gongBranch1, gongBranch2].filter(g => allBranches.includes(g));
+      stars.push({ name: '공망', meaning: '비어있는 기운 (' + gongList.join(',') + '). 해당 영역 허무감, 반전의 기회', type: '살' });
+    }
+
+    // 관귀학관 (일간 기준) — 학문 관직의 별
+    const gwanGwiMap = { '甲': '午', '乙': '巳', '丙': '寅', '丁': '卯', '戊': '寅', '己': '卯', '庚': '亥', '辛': '子', '壬': '申', '癸': '酉' };
+    if (gwanGwiMap[dayStem] && allBranches.includes(gwanGwiMap[dayStem])) {
+      stars.push({ name: '관귀학관', meaning: '관직·학업에서 높은 성취, 고시·공직 적성', type: '귀인' });
+    }
+
+    // 암록 (일간의 건록이 지장간에 숨어있는 경우)
+    const amRokTargets = geonRokMap[dayStem];
+    if (amRokTargets) {
+      // 사주 내 지지의 지장간에 건록 지지가 포함되어 있는지 확인
+      const jijangganAll = [];
+      allBranches.forEach(b => {
+        const info = jijiData.find(j => j.name === b);
+        if (info && info.jijanggan) jijangganAll.push(...info.jijanggan);
+      });
+      const rokStem = dayStem; // 건록은 일간과 같은 천간이 정기인 지지
+      if (jijangganAll.includes(rokStem) && !allBranches.includes(amRokTargets)) {
+        stars.push({ name: '암록', meaning: '숨겨진 재물복, 드러나지 않는 도움', type: '록' });
+      }
+    }
+
+    // 화개살 (년지 기준) — 예술·종교·고독의 별
+    const hwaGaeMap = {
+      '寅': '戌', '午': '戌', '戌': '戌',
+      '巳': '丑', '酉': '丑', '丑': '丑',
+      '申': '辰', '子': '辰', '辰': '辰',
+      '亥': '未', '卯': '未', '未': '未'
+    };
+    if (hwaGaeMap[pillars.year.jiji] && allBranches.includes(hwaGaeMap[pillars.year.jiji])) {
+      stars.push({ name: '화개살', meaning: '예술·종교·철학 재능, 고독한 탐구자', type: '성' });
+    }
+
+    // 장성살 (년지 기준) — 리더십의 별
+    const jangSungMap = {
+      '寅': '巳', '午': '巳', '戌': '巳',
+      '巳': '申', '酉': '申', '丑': '申',
+      '申': '亥', '子': '亥', '辰': '亥',
+      '亥': '寅', '卯': '寅', '未': '寅'
+    };
+    // 장성은 12신살에서 이미 계산하므로 여기서는 년지에 직접 있는 경우만
+    // (12신살과 중복 방지를 위해 별도 체크 불필요 — 12신살에서 커버)
+
     return stars;
   }
 
