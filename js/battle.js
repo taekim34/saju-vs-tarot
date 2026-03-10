@@ -71,25 +71,11 @@ const BattleEngine = (() => {
     // T7~T11: 타로 심화 분석
     const tarotAdvanced = TarotEngine.analyzeAdvanced(tarotDraw, birthYear, birthMonth, birthDay);
 
-    // U2: 질문을 라운드 주제에 맞을 때만 전달
-    // 종합운세는 항상 반영, 연애운/재물운은 관련 키워드가 있을 때만
-    let roundQuestion = '';
-    if (userQuestion) {
-      if (topic === '종합운세') {
-        roundQuestion = userQuestion;
-      } else if (topic === '연애운') {
-        const loveWords = ['사랑','연애','결혼','이별','썸','소개팅','짝','남친','여친','남편','아내','배우자','고백','재회','바람','외도','이혼','커플','데이트','관계','좋아하는','만남'];
-        if (loveWords.some(w => userQuestion.includes(w))) roundQuestion = userQuestion;
-      } else if (topic === '재물운') {
-        const moneyWords = ['돈','재물','투자','주식','부동산','사업','취업','이직','직장','월급','수입','대출','빚','복권','부자','경제','코인','재산','자산','수익','매출','창업','승진','연봉'];
-        if (moneyWords.some(w => userQuestion.includes(w))) roundQuestion = userQuestion;
-      }
-    }
-
+    // U2: 질문은 항상 전달 — LLM이 주제와의 관련성을 판단하여 반영/무시
     // AI 해석 요청 (병렬)
     const [sajuReading, tarotReading] = await Promise.all([
-      AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, roundQuestion),
-      AIInterpreter.getTarotReading(tarotDraw, topic, roundQuestion, tarotAdvanced)
+      AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, userQuestion),
+      AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion, tarotAdvanced)
     ]);
 
     const roundData = {

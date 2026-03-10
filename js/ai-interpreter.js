@@ -193,7 +193,7 @@ ${sajuResult.summary}
 성별: ${gender === 'male' ? '남성' : '여성'}`;
 
     if (question) {
-      userPrompt += `\n\n【사용자 고민/질문 — 이것이 핵심입니다】\n"${question}"\n→ 이 질문을 사주 구조와 깊게 연결하여, 왜 이런 상황이 생기는지 사주적 근거를 들어 분석하고 구체적 조언을 주세요.`;
+      userPrompt += `\n\n【사용자 고민/질문】\n"${question}"\n→ 이 질문이 현재 주제(${topic})와 관련이 있다면 사주 구조와 깊게 연결하여 분석하세요. 관련이 없다면 이 질문은 무시하고 ${topic} 주제에만 집중하세요.`;
     }
 
     userPrompt += `\n\n【현재 연도】: ${currentYear}년\n【해석 주제】: ${topic}`;
@@ -295,7 +295,7 @@ ${hasQuestion ? `# ${topicEmoji[topic] || '🔮'} ${topic} — "${question}" 카
 ${tarotSummary}`;
 
     if (question) {
-      userPrompt += `\n\n【사용자 고민/질문 — 이것이 핵심입니다】\n"${question}"\n→ 카드가 이 질문에 대해 무엇을 말하는지 깊게 풀어주세요.`;
+      userPrompt += `\n\n【사용자 고민/질문】\n"${question}"\n→ 이 질문이 현재 주제(${topic})와 관련이 있다면 카드 해석과 깊게 연결하여 분석하세요. 관련이 없다면 이 질문은 무시하고 ${topic} 주제에만 집중하세요.`;
     }
 
     return callAPI(systemPrompt, userPrompt, 2, 0, 6000);
