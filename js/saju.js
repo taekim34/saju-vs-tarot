@@ -758,7 +758,7 @@ const SajuEngine = (() => {
       daeun,
       gender,
       hasHourPillar: !!hourPillar,
-      summary: buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar)
+      summary: buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar, twelveSinsal)
     };
   }
 
@@ -766,7 +766,7 @@ const SajuEngine = (() => {
   // AI 프롬프트용 요약 (전면 강화)
   // ============================================================
 
-  function buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar) {
+  function buildSummary(pillars, dayMaster, elements, jijangganElements, strength, specialStars, chung, hap, seun, daeun, twelveStages, hourPillar, twelveSinsal) {
     const yi = getCheonganInfo(pillars.year.cheongan);
     const yj = getJijiInfo(pillars.year.jiji);
     const mi = getCheonganInfo(pillars.month.cheongan);
@@ -790,10 +790,34 @@ const SajuEngine = (() => {
     const sajuMonth = pillars.month.sajuMonth;
     const seasonMap = { 1: '초봄(인월)', 2: '봄(묘월)', 3: '늦봄(진월)', 4: '초여름(사월)', 5: '여름(오월)', 6: '늦여름(미월)', 7: '초가을(신월)', 8: '가을(유월)', 9: '늦가을(술월)', 10: '초겨울(해월)', 11: '겨울(자월)', 12: '늦겨울(축월)' };
     text += `\n절기 생월: ${sajuMonth}월 — ${seasonMap[sajuMonth] || sajuMonth + '월'}\n`;
-    text += `일간(나): ${dayMaster} (${CHEONGAN_ELEMENT[dayMaster]}, ${di.meaning})\n`;
+    text += `일간(나): ${dayMaster} (${CHEONGAN_ELEMENT[dayMaster]}/${CHEONGAN_YINYANG[dayMaster]}, ${di.meaning})\n`;
+
+    // 각 기둥 오행/음양 상세
+    const pillarList = [
+      { name: '년', p: pillars.year },
+      { name: '월', p: pillars.month },
+      { name: '일', p: pillars.day }
+    ];
+    if (hourPillar) pillarList.push({ name: '시', p: pillars.hour });
+    text += `기둥 오행/음양: ${pillarList.map(x =>
+      `${x.name}간=${x.p.cheongan}(${CHEONGAN_ELEMENT[x.p.cheongan]}/${CHEONGAN_YINYANG[x.p.cheongan]}) ${x.name}지=${x.p.jiji}(${JIJI_ELEMENT[x.p.jiji]}/${JIJI_YINYANG[x.p.jiji]})`
+    ).join(', ')}\n`;
+
     text += `오행(표면): 목${elements['목']} 화${elements['화']} 토${elements['토']} 금${elements['금']} 수${elements['수']}\n`;
     text += `오행(지장간): 목${jijangganElements['목']} 화${jijangganElements['화']} 토${jijangganElements['토']} 금${jijangganElements['금']} 수${jijangganElements['수']}\n`;
     text += `신강/신약: ${strength}\n`;
+
+    // 지장간 상세
+    const jijangganDetail = getJijangganDetail(pillars);
+    if (jijangganDetail.length > 0) {
+      text += `지장간: ${jijangganDetail.map(j => `${j.position}(${j.branch})=[${j.stems.join(',')}]`).join(', ')}\n`;
+    }
+
+    // 12신살 (년지 기준)
+    if (twelveSinsal && Object.keys(twelveSinsal).length > 0) {
+      const sinsalMap = { year: '년지', month: '월지', day: '일지', hour: '시지' };
+      text += `12신살(년지기준): ${Object.entries(twelveSinsal).map(([k, v]) => `${sinsalMap[k]}=${v}`).join(', ')}\n`;
+    }
 
     // 십성 배치 (궁성 포함)
     const tenGods = calculateTenGods(dayMaster, pillars);

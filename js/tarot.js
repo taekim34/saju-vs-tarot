@@ -343,8 +343,25 @@ const TarotEngine = (() => {
       const isMajor = card.id < 22;
       const cardType = isMajor ? '메이저 아르카나' : `마이너 아르카나(${card.suit_korean || ''})`;
       text += `[${item.position}] ${card.korean || card.name} (${item.direction})\n`;
-      text += `  유형: ${cardType}\n`;
-      text += `  키워드: ${item.keywords.join(', ')}\n`;
+      text += `  유형: ${cardType}`;
+      // 카드 번호
+      if (isMajor) {
+        text += ` / ${card.id}번`;
+      } else if (card.number) {
+        text += ` / ${card.number}번`;
+      } else if (card.rank) {
+        text += ` / ${card.rank}`;
+      }
+      // 카드 원소
+      const cardElem = card.suit_element || card.element || '';
+      if (cardElem) text += ` / 원소: ${cardElem}`;
+      text += '\n';
+
+      text += `  키워드(정방향): ${card.upright ? card.upright.join(', ') : item.keywords.join(', ')}\n`;
+      if (card.reversed) {
+        text += `  키워드(역방향): ${card.reversed.join(', ')}\n`;
+      }
+      text += `  → 현재 의미: ${item.keywords.join(', ')}\n`;
 
       if (drawResult.topic === '연애운') {
         const loveText = card.isReversed ? card.love_reversed : card.love_upright;
