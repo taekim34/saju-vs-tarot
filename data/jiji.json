@@ -17,7 +17,7 @@
     "animal": "소",
     "element": "토",
     "yin_yang": "음",
-    "jijanggan": ["己", "癸", "辛"],
+    "jijanggan": ["癸", "辛", "己"],
     "month": 12,
     "time_range": "01:00-03:00"
   },
@@ -28,7 +28,7 @@
     "animal": "호랑이",
     "element": "목",
     "yin_yang": "양",
-    "jijanggan": ["甲", "丙", "戊"],
+    "jijanggan": ["戊", "丙", "甲"],
     "month": 1,
     "time_range": "03:00-05:00"
   },
@@ -50,7 +50,7 @@
     "animal": "용",
     "element": "토",
     "yin_yang": "양",
-    "jijanggan": ["戊", "乙", "癸"],
+    "jijanggan": ["乙", "癸", "戊"],
     "month": 3,
     "time_range": "07:00-09:00"
   },
@@ -61,7 +61,7 @@
     "animal": "뱀",
     "element": "화",
     "yin_yang": "음",
-    "jijanggan": ["丙", "庚", "戊"],
+    "jijanggan": ["戊", "庚", "丙"],
     "month": 4,
     "time_range": "09:00-11:00"
   },
@@ -72,7 +72,7 @@
     "animal": "말",
     "element": "화",
     "yin_yang": "양",
-    "jijanggan": ["丁", "己"],
+    "jijanggan": ["己", "丁"],
     "month": 5,
     "time_range": "11:00-13:00"
   },
@@ -83,7 +83,7 @@
     "animal": "양",
     "element": "토",
     "yin_yang": "음",
-    "jijanggan": ["己", "丁", "乙"],
+    "jijanggan": ["丁", "乙", "己"],
     "month": 6,
     "time_range": "13:00-15:00"
   },
@@ -94,7 +94,7 @@
     "animal": "원숭이",
     "element": "금",
     "yin_yang": "양",
-    "jijanggan": ["庚", "壬", "戊"],
+    "jijanggan": ["戊", "壬", "庚"],
     "month": 7,
     "time_range": "15:00-17:00"
   },
@@ -116,7 +116,7 @@
     "animal": "개",
     "element": "토",
     "yin_yang": "양",
-    "jijanggan": ["戊", "辛", "丁"],
+    "jijanggan": ["辛", "丁", "戊"],
     "month": 9,
     "time_range": "19:00-21:00"
   },
@@ -127,7 +127,7 @@
     "animal": "돼지",
     "element": "수",
     "yin_yang": "음",
-    "jijanggan": ["壬", "甲"],
+    "jijanggan": ["甲", "壬"],
     "month": 10,
     "time_range": "21:00-23:00"
   }
