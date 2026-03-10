@@ -790,25 +790,35 @@
       `3라운드 투표에서 ${winDetail}의 해석이 더 공감을 얻었어요`);
     resultScore.appendChild(detailEl);
 
-    // 사주 명식 (만세력) — 기존 섹션 제거 후 렌더
-    const existingSajuSection = document.querySelector('.result-saju-section');
-    if (existingSajuSection) existingSajuSection.remove();
+    // 사주 명식 (만세력) + 타로 카드 — 기존 섹션 제거 후 렌더
+    document.querySelectorAll('.result-analysis-section').forEach(el => el.remove());
+    const analysisSection = createEl('div', 'result-analysis-section');
+
+    // 사주 명식
     const finalSajuRes = result.rounds[0]?.saju?.result;
     if (finalSajuRes && finalSajuRes.pillars) {
-      const sajuSection = createEl('div', 'result-saju-section');
-      sajuSection.appendChild(createEl('h3', 'result-section-title', '\u{1F3EE} 사주 명식'));
+      analysisSection.appendChild(createEl('h3', 'result-section-title', '\u{1F3EE} 사주 명식'));
       const chartContainer = createEl('div', 'saju-chart');
       renderSajuChart(chartContainer, finalSajuRes);
-      sajuSection.appendChild(chartContainer);
+      analysisSection.appendChild(chartContainer);
       if (finalSajuRes.dayMaster) {
         const infoContainer = createEl('div', 'saju-info');
         renderSajuInfo(infoContainer, finalSajuRes);
-        sajuSection.appendChild(infoContainer);
+        analysisSection.appendChild(infoContainer);
       }
-      if (finalSajuRes.dayMasterElement && finalSajuRes.elements) {
-        sajuSection.appendChild(renderOhangGraph(finalSajuRes.dayMasterElement, finalSajuRes.elements));
-      }
-      resultRounds.parentNode.insertBefore(sajuSection, resultRounds);
+    }
+
+    // 타로 카드 (마지막 라운드 기준)
+    const lastTarotDraw = result.rounds[result.rounds.length - 1]?.tarot?.draw;
+    if (lastTarotDraw) {
+      analysisSection.appendChild(createEl('h3', 'result-section-title', '\u{1F52E} 타로 카드'));
+      const tarotContainer = createEl('div', 'tarot-cards');
+      renderTarotCards(tarotContainer, lastTarotDraw);
+      analysisSection.appendChild(tarotContainer);
+    }
+
+    if (analysisSection.childNodes.length > 0) {
+      resultRounds.parentNode.insertBefore(analysisSection, resultRounds);
     }
 
     // 라운드별 요약

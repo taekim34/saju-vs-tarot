@@ -33,7 +33,10 @@ const ShareManager = (() => {
         rounds: resultData.rounds || [],
         birth_info: resultData.birth_info || '',
         question: resultData.question || '',
-        judgment: resultData.judgment || ''
+        judgment: resultData.judgment || '',
+        topics: resultData.topics || [],
+        questions: resultData.questions || {},
+        sajuResult: resultData.sajuResult || null
       });
       savedId = id;
       return `${base}?id=${id}`;
