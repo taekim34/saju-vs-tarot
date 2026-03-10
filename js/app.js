@@ -155,18 +155,30 @@
         `3라운드 투표에서 ${winnerName}의 해석이 ${loserName}보다 더 공감을 얻었어요`));
       container.appendChild(scoreDiv);
 
-      // 사주 명식표 (첫 라운드 데이터에서)
+      // 사주 분석 (풀 데이터 또는 레거시 호환)
       const rounds = data.rounds || [];
-      const sajuPillars = rounds[0]?.sajuPillars;
-      const sajuElements = rounds[0]?.sajuElements;
-      if (sajuPillars) {
+      const sajuRes = data.sajuResult || (rounds[0]?.sajuPillars ? { pillars: rounds[0].sajuPillars, elements: rounds[0].sajuElements } : null);
+      if (sajuRes && sajuRes.pillars) {
         const chartSection = createEl('div', 'shared-saju-section');
         chartSection.appendChild(createEl('h3', 'shared-section-title', '\u{1F3EE} 사주 명식'));
         chartSection.appendChild(createEl('p', 'shared-caption',
           '생년월일을 기반으로 계산한 사주팔자입니다. 네 기둥(년/월/일/시)의 한자가 타고난 운명을 나타내요'));
         const chartContainer = createEl('div', 'saju-chart');
-        renderSajuChart(chartContainer, { pillars: sajuPillars, elements: sajuElements });
+        renderSajuChart(chartContainer, sajuRes);
         chartSection.appendChild(chartContainer);
+
+        // 사주 분석 정보 패널 (풀 데이터일 때만)
+        if (sajuRes.dayMaster) {
+          const infoContainer = createEl('div', 'saju-info');
+          renderSajuInfo(infoContainer, sajuRes);
+          chartSection.appendChild(infoContainer);
+        }
+
+        // 오행 생극 관계도
+        if (sajuRes.dayMasterElement && sajuRes.elements) {
+          chartSection.appendChild(renderOhangGraph(sajuRes.dayMasterElement, sajuRes.elements));
+        }
+
         container.appendChild(chartSection);
       }
 
@@ -177,7 +189,7 @@
         '\uC885\uD569\uC6B4\uC138': '올해의 전체적인 운세를 종합적으로 판단했어요'
       };
 
-      // 라운드별 — 선택된 쪽만 표시
+      // 라운드별 — 양쪽 모두 표시
       rounds.forEach((r, i) => {
         const roundSection = createEl('div', 'shared-round');
         const isSaju = r.vote === 'saju';
@@ -191,58 +203,93 @@
         header.appendChild(badge);
         roundSection.appendChild(header);
 
-        // 친절한 라운드 설명
         const desc = topicDesc[r.topic];
         if (desc) {
           roundSection.appendChild(createEl('p', 'shared-caption', desc));
         }
 
-        if (isSaju) {
+        // 사주 풀이 (항상 표시)
+        if (r.sajuReading) {
           roundSection.appendChild(createEl('p', 'shared-method-note',
-            '\u{1F3EE} 사주: 생년월일의 천간/지지를 분석하여 운의 흐름을 읽어줍니다'));
-          const readingBox = createEl('div', 'shared-content-box saju-accent');
-          (r.sajuReading || '').split('\n').filter(l => l.trim()).forEach(line => {
-            readingBox.appendChild(createEl('p', 'shared-content-text', line));
+            '\u{1F3EE} 사주명인의 풀이'));
+          const sajuBox = createEl('div', 'shared-content-box saju-accent');
+          r.sajuReading.split('\n').filter(l => l.trim()).forEach(line => {
+            sajuBox.appendChild(createEl('p', 'shared-content-text', line));
           });
-          roundSection.appendChild(readingBox);
-        } else {
-          roundSection.appendChild(createEl('p', 'shared-method-note',
-            '\u{1F52E} 타로: 무의식이 이끄는 카드를 뽑아 현재 에너지를 읽어줍니다'));
-
-          // 타로 카드 이미지
-          if (r.tarotCards && r.tarotCards.length > 0) {
-            const cardsContainer = createEl('div', 'shared-tarot-cards');
-            r.tarotCards.forEach(card => {
-              const cardEl = createEl('div', 'shared-tarot-card');
-              if (card.image_key) {
-                const img = document.createElement('img');
-                img.src = `images/tarot/${card.image_key}.jpg`;
-                img.alt = card.korean || '';
-                img.className = `shared-card-img${card.isReversed ? ' reversed' : ''}`;
-                img.loading = 'lazy';
-                cardEl.appendChild(img);
-              }
-              cardEl.appendChild(createEl('div', 'shared-card-name', card.korean || ''));
-              if (card.position) {
-                cardEl.appendChild(createEl('div', 'shared-card-pos', card.position));
-              }
-              if (card.direction) {
-                cardEl.appendChild(createEl('div', 'shared-card-dir',
-                  card.isReversed ? '역방향 (숨겨진 의미)' : '정방향'));
-              }
-              cardsContainer.appendChild(cardEl);
-            });
-            roundSection.appendChild(cardsContainer);
-          }
-
-          const readingBox = createEl('div', 'shared-content-box tarot-accent');
-          (r.tarotReading || '').split('\n').filter(l => l.trim()).forEach(line => {
-            readingBox.appendChild(createEl('p', 'shared-content-text', line));
-          });
-          roundSection.appendChild(readingBox);
+          roundSection.appendChild(sajuBox);
         }
 
-        // 투표 결과 설명
+        // 타로 카드 + 풀이 (항상 표시)
+        if (r.tarotCards && r.tarotCards.length > 0) {
+          roundSection.appendChild(createEl('p', 'shared-method-note',
+            '\u{1F52E} 타로할머니의 풀이'));
+
+          const ELEM_EMOJI = { '불': '\u{1F525}', '물': '\u{1F4A7}', '바람': '\u{1F32C}\u{FE0F}', '흙': '\u{1F33F}' };
+          const ELEM_CLS = { '불': 'tarot-el-fire', '물': 'tarot-el-water', '바람': 'tarot-el-air', '흙': 'tarot-el-earth' };
+
+          const cardsContainer = createEl('div', 'shared-tarot-cards');
+          r.tarotCards.forEach(card => {
+            const cardEl = createEl('div', 'shared-tarot-card');
+            if (card.image_key) {
+              const img = document.createElement('img');
+              img.src = `images/tarot/${card.image_key}.jpg`;
+              img.alt = card.korean || '';
+              img.className = `shared-card-img${card.isReversed ? ' reversed' : ''}`;
+              img.loading = 'lazy';
+              cardEl.appendChild(img);
+            }
+            // 원소 뱃지
+            const cardElem = card.suit_element || card.element || '';
+            let elKey = null;
+            if (cardElem.includes('불') || cardElem.includes('화성') || cardElem.includes('태양')) elKey = '불';
+            else if (cardElem.includes('물') || cardElem.includes('달') || cardElem.includes('해왕')) elKey = '물';
+            else if (cardElem.includes('바람') || cardElem.includes('천왕') || cardElem.includes('수성')) elKey = '바람';
+            else if (cardElem.includes('흙') || cardElem.includes('토성') || cardElem.includes('금성')) elKey = '흙';
+            if (elKey) {
+              cardEl.appendChild(createEl('div', 'tarot-element-badge ' + (ELEM_CLS[elKey] || ''),
+                (ELEM_EMOJI[elKey] || '') + ' ' + elKey));
+            }
+            cardEl.appendChild(createEl('div', 'shared-card-name', card.korean || ''));
+            if (card.position) cardEl.appendChild(createEl('div', 'shared-card-pos', card.position));
+            if (card.direction) {
+              cardEl.appendChild(createEl('div', 'shared-card-dir',
+                card.isReversed ? '역방향' : '정방향'));
+            }
+            cardsContainer.appendChild(cardEl);
+          });
+          roundSection.appendChild(cardsContainer);
+
+          // 타로 패턴 요약 바
+          if (r.tarotPatterns) {
+            const patBar = createEl('div', 'tarot-pattern-bar');
+            const p = r.tarotPatterns;
+            if (p.majorMinor) {
+              patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-major',
+                '메이저 ' + p.majorMinor.majorCount + ' / 마이너 ' + p.majorMinor.minorCount));
+            }
+            if (p.suits && p.suits.dominant) {
+              p.suits.dominant.forEach(s => {
+                patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-suit',
+                  (ELEM_EMOJI[s.element] || '') + ' ' + (s.suitKorean || s.suit) + ' ' + s.count + '장'));
+              });
+            }
+            if (p.courtCards && p.courtCards.length > 0) {
+              patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-court',
+                '\u{1F451} 인물 ' + p.courtCards.length + '장'));
+            }
+            roundSection.appendChild(patBar);
+          }
+        }
+
+        if (r.tarotReading) {
+          const tarotBox = createEl('div', 'shared-content-box tarot-accent');
+          r.tarotReading.split('\n').filter(l => l.trim()).forEach(line => {
+            tarotBox.appendChild(createEl('p', 'shared-content-text', line));
+          });
+          roundSection.appendChild(tarotBox);
+        }
+
+        // 투표 결과
         const votedName = isSaju ? '사주' : '타로';
         roundSection.appendChild(createEl('p', 'shared-vote-result',
           `\u{2705} 이 라운드에서는 ${votedName}의 해석에 더 공감했어요`));
@@ -639,7 +686,8 @@
     msgBox.appendChild(createEl('p', 'message-text', result.message || result.aiJudgment.reason || ''));
     resultMessage.appendChild(msgBox);
 
-    // 공유용 데이터 준비 (사주 명식 + 타로 카드 포함)
+    // 공유용 데이터 준비 (사주 풀 분석 + 타로 카드/패턴 포함)
+    const sajuRes = result.rounds[0]?.saju?.result;
     const shareData = {
       winner: result.winner,
       scores: result.scores,
@@ -647,26 +695,46 @@
       birth_info: currentUserData ? `${currentUserData.year}-${currentUserData.month}-${currentUserData.day}-${currentUserData.gender}${currentUserData.hour != null ? `-${currentUserData.hour}-${currentUserData.minute || 0}` : ''}` : '',
       question: currentUserData?.question || '',
       judgment: result.message || result.aiJudgment?.reason || '',
-      rounds: (result.rounds || []).map((r, i) => {
-        const rd = {
-          topic: r.topic,
-          vote: r.vote,
-          sajuReading: r.saju?.reading?.text || '',
-          tarotReading: r.tarot?.reading?.text || '',
-          tarotCards: (r.tarot?.draw?.reading || []).map(item => ({
-            image_key: item.card?.image_key,
-            korean: item.card?.korean || item.card?.name,
-            isReversed: !!item.card?.isReversed,
-            position: item.position,
-            direction: item.direction
-          }))
-        };
-        if (i === 0 && r.saju?.result) {
-          rd.sajuPillars = r.saju.result.pillars;
-          rd.sajuElements = r.saju.result.elements;
-        }
-        return rd;
-      })
+      // 사주 분석 결과 (1회만 — 전 라운드 공통)
+      sajuResult: sajuRes ? {
+        pillars: sajuRes.pillars,
+        elements: sajuRes.elements,
+        dayMaster: sajuRes.dayMaster,
+        dayMasterElement: sajuRes.dayMasterElement,
+        dayMasterYinYang: sajuRes.dayMasterYinYang,
+        dayMasterInfo: sajuRes.dayMasterInfo,
+        strength: sajuRes.strength,
+        tenGods: sajuRes.tenGods,
+        tenGodStats: sajuRes.tenGodStats,
+        twelveStages: sajuRes.twelveStages,
+        twelveSinsal: sajuRes.twelveSinsal,
+        jijangganDetail: sajuRes.jijangganDetail,
+        specialStars: sajuRes.specialStars,
+        chung: sajuRes.chung,
+        hap: sajuRes.hap,
+        seun: sajuRes.seun,
+        daeun: sajuRes.daeun
+      } : null,
+      rounds: (result.rounds || []).map((r) => ({
+        topic: r.topic,
+        vote: r.vote,
+        sajuReading: r.saju?.reading?.text || '',
+        tarotReading: r.tarot?.reading?.text || '',
+        tarotCards: (r.tarot?.draw?.reading || []).map(item => ({
+          image_key: item.card?.image_key,
+          korean: item.card?.korean || item.card?.name,
+          isReversed: !!item.card?.isReversed,
+          position: item.position,
+          direction: item.direction,
+          id: item.card?.id,
+          suit: item.card?.suit,
+          suit_korean: item.card?.suit_korean,
+          suit_element: item.card?.suit_element,
+          element: item.card?.element,
+          rank: item.card?.rank
+        })),
+        tarotPatterns: r.tarot?.draw?.patterns || null
+      }))
     };
 
     ShareManager.setResult(shareData);
