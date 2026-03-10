@@ -1137,13 +1137,18 @@ const SajuEngine = (() => {
       if (seun.hap.length > 0) text += `  세운 합: ${seun.hap.map(h => `${seun.branch}-${h.branch}(${h.element})`).join(', ')}\n`;
     }
 
-    // 대운
+    // 대운 (전체 리스트 + 십성)
     if (daeun) {
       text += `\n【대운】 ${daeun.direction}, ${daeun.startAge}세 시작\n`;
       if (daeun.current) {
-        text += `  현재 대운: ${daeun.current.stem}${daeun.current.branch} (${daeun.current.stemElement}${daeun.current.branchElement}) [${daeun.current.ageRange}]\n`;
+        text += `  ★ 현재 대운: ${daeun.current.stem}${daeun.current.branch} (${daeun.current.stemElement}${daeun.current.branchElement}) [${daeun.current.ageRange}]\n`;
       }
-      text += `  흐름: ${daeun.list.slice(0, 5).map(d => `${d.stem}${d.branch}(${d.ageRange})`).join(' → ')}\n`;
+      text += `  전체 흐름:\n`;
+      daeun.list.forEach(d => {
+        const stemTenGod = getTenGod(dayMaster, d.stem, true);
+        const marker = d.isCurrent ? ' ← 현재' : '';
+        text += `    ${d.ageRange}: ${d.stem}${d.branch}(${d.stemElement}${d.branchElement}) [${stemTenGod}]${marker}\n`;
+      });
     }
 
     return text;
