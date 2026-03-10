@@ -147,6 +147,12 @@
   }
 
   function updateTopicQuestions() {
+    // 기존 입력값 보존
+    const savedValues = {};
+    topicQuestionFields.querySelectorAll('.topic-q-input').forEach(input => {
+      if (input.value) savedValues[input.dataset.topicId] = input.value;
+    });
+
     topicQuestionFields.textContent = '';
 
     if (selectedTopics.length === 0) {
@@ -167,6 +173,7 @@
       input.placeholder = t.placeholder;
       input.maxLength = 100;
       input.dataset.topicId = t.id;
+      if (savedValues[t.id]) input.value = savedValues[t.id];
       field.appendChild(input);
       topicQuestionFields.appendChild(field);
     });
