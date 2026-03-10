@@ -44,42 +44,40 @@ const StatsManager = (() => {
       c({ gender: 'female' }), c({ gender: 'female', winner: 'saju' }), c({ gender: 'female', winner: 'tarot' })
     ]);
 
-    // Wave 2: 주제별 투표 (7 주제 × 2 = 14건 병렬)
-    // 신규 데이터: vote_주제명 필드 사용
-    const topicQueries = ALL_TOPICS.flatMap(t => {
-      const field = `vote_${t.name}`;
-      return [
-        c({ [field]: 'saju' }),
-        c({ [field]: 'tarot' })
-      ];
-    });
-    const topicResults = await Promise.all(topicQueries);
-
-    // 레거시 데이터: r1/r2/r3_vote (기존 고정 주제)
-    const [r1Saju, r1Tarot, r2Saju, r2Tarot, r3Saju, r3Tarot] = await Promise.all([
-      c({ r1_vote: 'saju' }), c({ r1_vote: 'tarot' }),
-      c({ r2_vote: 'saju' }), c({ r2_vote: 'tarot' }),
-      c({ r3_vote: 'saju' }), c({ r3_vote: 'tarot' })
-    ]);
-    const legacyVotes = {
-      '연애운': { saju: r1Saju, tarot: r1Tarot },
-      '재물운': { saju: r2Saju, tarot: r2Tarot },
-      '종합운세': { saju: r3Saju, tarot: r3Tarot }
-    };
-
-    // 주제별 결과 조합 (신규 + 레거시 합산, 기본 3개만 중복)
+    // Wave 2: 주제별 투표 — 레코드를 가져와서 클라이언트 집계
+    // topic_votes 객체 + 레거시 r1/r2/r3_vote 모두 처리
+    const allStats = await BkendClient.listStats(500);
     const topicVotes = {};
-    ALL_TOPICS.forEach((t, i) => {
-      const newSaju = topicResults[i * 2];
-      const newTarot = topicResults[i * 2 + 1];
-      const legacy = legacyVotes[t.name];
-      // 기본 3주제는 레거시 + 신규 합산 (중복 없음: 레거시는 vote_* 없음, 신규는 r1/r2/r3 있지만 주제가 다를 수 있음)
-      // 단순 합산 — 다소 과집계 가능하나, 시간이 지나면 신규가 대부분이 됨
-      const saju = newSaju + (legacy ? legacy.saju : 0);
-      const tarot = newTarot + (legacy ? legacy.tarot : 0);
-      if (saju + tarot > 0) {
-        topicVotes[t.name] = { saju, tarot, emoji: t.emoji };
+    ALL_TOPICS.forEach(t => {
+      topicVotes[t.name] = { saju: 0, tarot: 0, emoji: t.emoji };
+    });
+
+    const LEGACY_TOPICS = ['연애운', '재물운', '종합운세'];
+    allStats.forEach(record => {
+      // 신규 데이터: topic_votes 객체
+      const tv = record.topic_votes;
+      if (tv && typeof tv === 'object') {
+        Object.entries(tv).forEach(([topic, vote]) => {
+          if (topicVotes[topic] && (vote === 'saju' || vote === 'tarot')) {
+            topicVotes[topic][vote]++;
+          }
+        });
+      } else {
+        // 레거시 데이터: r1/r2/r3_vote → 고정 주제 매핑
+        ['r1_vote', 'r2_vote', 'r3_vote'].forEach((field, idx) => {
+          const vote = record[field];
+          if (vote === 'saju' || vote === 'tarot') {
+            const topic = LEGACY_TOPICS[idx];
+            topicVotes[topic][vote]++;
+          }
+        });
       }
+    });
+
+    // 데이터 없는 주제 제거
+    ALL_TOPICS.forEach(t => {
+      const tv = topicVotes[t.name];
+      if (tv.saju + tv.tarot === 0) delete topicVotes[t.name];
     });
 
     // Wave 3: 연령대 (birth_year 범위 필터)
