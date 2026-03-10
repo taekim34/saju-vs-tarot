@@ -313,20 +313,21 @@
           roundSection.appendChild(createEl('p', 'shared-caption', desc));
         }
 
-        // 사주 풀이 (항상 표시)
+        // 사주 풀이 (항상 표시, 비선택 시 dimmed)
         if (r.sajuReading) {
-          roundSection.appendChild(createEl('p', 'shared-method-note',
+          const sajuWrap = createEl('div', `shared-reading-wrap${isSaju ? '' : ' dimmed'}`);
+          sajuWrap.appendChild(createEl('p', 'shared-method-note',
             '\u{1F3EE} 사주명인의 풀이'));
           const sajuBox = createEl('div', 'shared-content-box saju-accent');
-          r.sajuReading.split('\n').filter(l => l.trim()).forEach(line => {
-            sajuBox.appendChild(createEl('p', 'shared-content-text', line));
-          });
-          roundSection.appendChild(sajuBox);
+          renderReading(sajuBox, r.sajuReading);
+          sajuWrap.appendChild(sajuBox);
+          roundSection.appendChild(sajuWrap);
         }
 
-        // 타로 카드 + 풀이 (항상 표시)
+        // 타로 카드 + 풀이 (항상 표시, 비선택 시 dimmed)
+        const tarotWrap = createEl('div', `shared-reading-wrap${!isSaju ? '' : ' dimmed'}`);
         if (r.tarotCards && r.tarotCards.length > 0) {
-          roundSection.appendChild(createEl('p', 'shared-method-note',
+          tarotWrap.appendChild(createEl('p', 'shared-method-note',
             '\u{1F52E} 타로할머니의 풀이'));
 
           const ELEM_EMOJI = { '불': '\u{1F525}', '물': '\u{1F4A7}', '바람': '\u{1F32C}\u{FE0F}', '흙': '\u{1F33F}' };
@@ -362,7 +363,7 @@
             }
             cardsContainer.appendChild(cardEl);
           });
-          roundSection.appendChild(cardsContainer);
+          tarotWrap.appendChild(cardsContainer);
 
           // 타로 패턴 요약 바
           if (r.tarotPatterns) {
@@ -382,17 +383,16 @@
               patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-court',
                 '\u{1F451} 인물 ' + p.courtCards.length + '장'));
             }
-            roundSection.appendChild(patBar);
+            tarotWrap.appendChild(patBar);
           }
         }
 
         if (r.tarotReading) {
           const tarotBox = createEl('div', 'shared-content-box tarot-accent');
-          r.tarotReading.split('\n').filter(l => l.trim()).forEach(line => {
-            tarotBox.appendChild(createEl('p', 'shared-content-text', line));
-          });
-          roundSection.appendChild(tarotBox);
+          renderReading(tarotBox, r.tarotReading);
+          tarotWrap.appendChild(tarotBox);
         }
+        roundSection.appendChild(tarotWrap);
 
         // 투표 결과
         const votedName = isSaju ? '사주' : '타로';
@@ -782,6 +782,27 @@
     const detailEl = createEl('div', 'score-detail',
       `3라운드 투표에서 ${winDetail}의 해석이 더 공감을 얻었어요`);
     resultScore.appendChild(detailEl);
+
+    // 사주 명식 (만세력) — 기존 섹션 제거 후 렌더
+    const existingSajuSection = document.querySelector('.result-saju-section');
+    if (existingSajuSection) existingSajuSection.remove();
+    const finalSajuRes = result.rounds[0]?.saju?.result;
+    if (finalSajuRes && finalSajuRes.pillars) {
+      const sajuSection = createEl('div', 'result-saju-section');
+      sajuSection.appendChild(createEl('h3', 'result-section-title', '\u{1F3EE} 사주 명식'));
+      const chartContainer = createEl('div', 'saju-chart');
+      renderSajuChart(chartContainer, finalSajuRes);
+      sajuSection.appendChild(chartContainer);
+      if (finalSajuRes.dayMaster) {
+        const infoContainer = createEl('div', 'saju-info');
+        renderSajuInfo(infoContainer, finalSajuRes);
+        sajuSection.appendChild(infoContainer);
+      }
+      if (finalSajuRes.dayMasterElement && finalSajuRes.elements) {
+        sajuSection.appendChild(renderOhangGraph(finalSajuRes.dayMasterElement, finalSajuRes.elements));
+      }
+      resultRounds.parentNode.insertBefore(sajuSection, resultRounds);
+    }
 
     // 라운드별 요약
     resultRounds.textContent = '';

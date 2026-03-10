@@ -99,7 +99,15 @@ const BkendClient = (() => {
         r2_vote: data.r2_vote || '',
         r3_vote: data.r3_vote || '',
         topics: data.topics || [],
-        topic_votes: data.topic_votes || {}
+        topic_votes: data.topic_votes || {},
+        // 주제별 flat 투표 필드 (countStats 필터용)
+        vote_연애운: (data.topic_votes || {})['연애운'] || '',
+        vote_재물운: (data.topic_votes || {})['재물운'] || '',
+        vote_종합운세: (data.topic_votes || {})['종합운세'] || '',
+        vote_직업운: (data.topic_votes || {})['직업운'] || '',
+        vote_건강운: (data.topic_votes || {})['건강운'] || '',
+        vote_학업운: (data.topic_votes || {})['학업운'] || '',
+        vote_대인관계: (data.topic_votes || {})['대인관계'] || ''
       })
     });
 

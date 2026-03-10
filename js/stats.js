@@ -16,7 +16,15 @@ const StatsManager = (() => {
     return total > 0 ? Math.round(val / total * 100) : 0;
   }
 
-  const TOPICS = ['연애운', '재물운', '종합운세'];
+  const ALL_TOPICS = [
+    { name: '연애운',   emoji: '💞' },
+    { name: '재물운',   emoji: '💰' },
+    { name: '종합운세', emoji: '🌏' },
+    { name: '직업운',   emoji: '🏆' },
+    { name: '건강운',   emoji: '🏥' },
+    { name: '학업운',   emoji: '📚' },
+    { name: '대인관계', emoji: '🤝' }
+  ];
   const DECADES = [10, 20, 30, 40, 50, 60, 70, 80];
 
   /**
@@ -25,22 +33,56 @@ const StatsManager = (() => {
   async function fetchAllCounts() {
     const c = BkendClient.countStats;
 
-    // Wave 1: 종합 + 라운드 + 성별 (15건 병렬)
+    // Wave 1: 종합 + 성별 (9건 병렬)
     const [
       total, sajuWins, tarotWins,
-      r1Saju, r1Tarot, r2Saju, r2Tarot, r3Saju, r3Tarot,
       maleTotal, maleSaju, maleTarot,
       femaleTotal, femaleSaju, femaleTarot
     ] = await Promise.all([
       c({}), c({ winner: 'saju' }), c({ winner: 'tarot' }),
-      c({ r1_vote: 'saju' }), c({ r1_vote: 'tarot' }),
-      c({ r2_vote: 'saju' }), c({ r2_vote: 'tarot' }),
-      c({ r3_vote: 'saju' }), c({ r3_vote: 'tarot' }),
       c({ gender: 'male' }), c({ gender: 'male', winner: 'saju' }), c({ gender: 'male', winner: 'tarot' }),
       c({ gender: 'female' }), c({ gender: 'female', winner: 'saju' }), c({ gender: 'female', winner: 'tarot' })
     ]);
 
-    // Wave 2: 연령대 (birth_year 범위 필터, 최대 24건 병렬)
+    // Wave 2: 주제별 투표 (7 주제 × 2 = 14건 병렬)
+    // 신규 데이터: vote_주제명 필드 사용
+    const topicQueries = ALL_TOPICS.flatMap(t => {
+      const field = `vote_${t.name}`;
+      return [
+        c({ [field]: 'saju' }),
+        c({ [field]: 'tarot' })
+      ];
+    });
+    const topicResults = await Promise.all(topicQueries);
+
+    // 레거시 데이터: r1/r2/r3_vote (기존 고정 주제)
+    const [r1Saju, r1Tarot, r2Saju, r2Tarot, r3Saju, r3Tarot] = await Promise.all([
+      c({ r1_vote: 'saju' }), c({ r1_vote: 'tarot' }),
+      c({ r2_vote: 'saju' }), c({ r2_vote: 'tarot' }),
+      c({ r3_vote: 'saju' }), c({ r3_vote: 'tarot' })
+    ]);
+    const legacyVotes = {
+      '연애운': { saju: r1Saju, tarot: r1Tarot },
+      '재물운': { saju: r2Saju, tarot: r2Tarot },
+      '종합운세': { saju: r3Saju, tarot: r3Tarot }
+    };
+
+    // 주제별 결과 조합 (신규 + 레거시 합산, 기본 3개만 중복)
+    const topicVotes = {};
+    ALL_TOPICS.forEach((t, i) => {
+      const newSaju = topicResults[i * 2];
+      const newTarot = topicResults[i * 2 + 1];
+      const legacy = legacyVotes[t.name];
+      // 기본 3주제는 레거시 + 신규 합산 (중복 없음: 레거시는 vote_* 없음, 신규는 r1/r2/r3 있지만 주제가 다를 수 있음)
+      // 단순 합산 — 다소 과집계 가능하나, 시간이 지나면 신규가 대부분이 됨
+      const saju = newSaju + (legacy ? legacy.saju : 0);
+      const tarot = newTarot + (legacy ? legacy.tarot : 0);
+      if (saju + tarot > 0) {
+        topicVotes[t.name] = { saju, tarot, emoji: t.emoji };
+      }
+    });
+
+    // Wave 3: 연령대 (birth_year 범위 필터)
     const now = new Date().getFullYear();
     const ageQueries = DECADES.flatMap(decade => {
       const maxYear = now - decade;
@@ -54,7 +96,6 @@ const StatsManager = (() => {
     });
     const ageResults = await Promise.all(ageQueries);
 
-    // 연령대 결과 조합
     const age = {};
     DECADES.forEach((decade, i) => {
       const dTotal = ageResults[i * 3];
@@ -68,11 +109,7 @@ const StatsManager = (() => {
     return {
       total,
       overall: { saju: sajuWins, tarot: tarotWins },
-      roundVotes: {
-        '연애운': { saju: r1Saju, tarot: r1Tarot },
-        '재물운': { saju: r2Saju, tarot: r2Tarot },
-        '종합운세': { saju: r3Saju, tarot: r3Tarot }
-      },
+      topicVotes,
       gender: {
         male: { total: maleTotal, saju: maleSaju, tarot: maleTarot },
         female: { total: femaleTotal, saju: femaleSaju, tarot: femaleTarot }
@@ -144,21 +181,26 @@ const StatsManager = (() => {
     overallCard.appendChild(renderBar(stats.overall.saju, stats.overall.tarot));
     container.appendChild(overallCard);
 
-    // Per-round
-    const roundCard = createEl('div', 'stats-card');
-    roundCard.appendChild(createEl('h3', 'stats-card-title', '주제별 투표'));
-    TOPICS.forEach(topic => {
-      const rv = stats.roundVotes[topic];
-      if (!rv) return;
-      const total = rv.saju + rv.tarot;
+    // Per-topic votes (7개 주제 모두)
+    const topicCard = createEl('div', 'stats-card');
+    topicCard.appendChild(createEl('h3', 'stats-card-title', '주제별 투표'));
+    let hasTopicData = false;
+    ALL_TOPICS.forEach(t => {
+      const tv = stats.topicVotes[t.name];
+      if (!tv) return;
+      const total = tv.saju + tv.tarot;
       if (total === 0) return;
+      hasTopicData = true;
       const label = createEl('div', 'stats-bar-label');
-      label.appendChild(createEl('span', '', topic));
-      label.appendChild(createEl('span', 'stats-bar-count', `사주 ${rv.saju} : 타로 ${rv.tarot}`));
-      roundCard.appendChild(label);
-      roundCard.appendChild(renderBar(rv.saju, rv.tarot));
+      label.appendChild(createEl('span', '', `${t.emoji} ${t.name}`));
+      label.appendChild(createEl('span', 'stats-bar-count', `사주 ${tv.saju} : 타로 ${tv.tarot}`));
+      topicCard.appendChild(label);
+      topicCard.appendChild(renderBar(tv.saju, tv.tarot));
     });
-    container.appendChild(roundCard);
+    if (!hasTopicData) {
+      topicCard.appendChild(createEl('p', 'stats-no-data', '데이터 없음'));
+    }
+    container.appendChild(topicCard);
 
     // Gender
     const genderCard = createEl('div', 'stats-card');

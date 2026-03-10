@@ -979,6 +979,64 @@ body {
   margin: 4px 0;
 }
 
+/* 선택/비선택 reading 구분 */
+.shared-reading-wrap {
+  margin-bottom: 12px;
+}
+
+.shared-reading-wrap.dimmed {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  position: relative;
+}
+
+.shared-reading-wrap.dimmed::before {
+  content: '미선택';
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+  background: var(--color-bg);
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  z-index: 1;
+}
+
+/* 공유 결과의 마크다운 렌더링 (renderReading 재사용) */
+.shared-content-box .reading-heading {
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+.shared-content-box .reading-text {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin: 3px 0;
+}
+
+.shared-content-box .reading-list {
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+/* 최종 결과 화면 사주 명식 섹션 */
+.result-saju-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.result-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text);
+}
+
 .shared-tarot-cards {
   display: flex;
   gap: 10px;
