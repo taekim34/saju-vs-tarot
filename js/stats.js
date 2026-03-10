@@ -46,39 +46,44 @@ const StatsManager = (() => {
 
     // Wave 2: 주제별 투표 — 레코드를 가져와서 클라이언트 집계
     // topic_votes 객체 + 레거시 r1/r2/r3_vote 모두 처리
-    const allStats = await BkendClient.listStats(500);
     const topicVotes = {};
-    ALL_TOPICS.forEach(t => {
-      topicVotes[t.name] = { saju: 0, tarot: 0, emoji: t.emoji };
-    });
+    try {
+      const allStats = await BkendClient.listStats(500);
+      console.log('[stats] listStats returned', allStats.length, 'records');
+      ALL_TOPICS.forEach(t => {
+        topicVotes[t.name] = { saju: 0, tarot: 0, emoji: t.emoji };
+      });
 
-    const LEGACY_TOPICS = ['연애운', '재물운', '종합운세'];
-    allStats.forEach(record => {
-      // 신규 데이터: topic_votes 객체
-      const tv = record.topic_votes;
-      if (tv && typeof tv === 'object') {
-        Object.entries(tv).forEach(([topic, vote]) => {
-          if (topicVotes[topic] && (vote === 'saju' || vote === 'tarot')) {
-            topicVotes[topic][vote]++;
-          }
-        });
-      } else {
-        // 레거시 데이터: r1/r2/r3_vote → 고정 주제 매핑
-        ['r1_vote', 'r2_vote', 'r3_vote'].forEach((field, idx) => {
-          const vote = record[field];
-          if (vote === 'saju' || vote === 'tarot') {
-            const topic = LEGACY_TOPICS[idx];
-            topicVotes[topic][vote]++;
-          }
-        });
-      }
-    });
+      const LEGACY_TOPICS = ['연애운', '재물운', '종합운세'];
+      allStats.forEach(record => {
+        // 신규 데이터: topic_votes 객체
+        const tv = record.topic_votes;
+        if (tv && typeof tv === 'object' && Object.keys(tv).length > 0) {
+          Object.entries(tv).forEach(([topic, vote]) => {
+            if (topicVotes[topic] && (vote === 'saju' || vote === 'tarot')) {
+              topicVotes[topic][vote]++;
+            }
+          });
+        } else {
+          // 레거시 데이터: r1/r2/r3_vote → 고정 주제 매핑
+          ['r1_vote', 'r2_vote', 'r3_vote'].forEach((field, idx) => {
+            const vote = record[field];
+            if (vote === 'saju' || vote === 'tarot') {
+              const topic = LEGACY_TOPICS[idx];
+              topicVotes[topic][vote]++;
+            }
+          });
+        }
+      });
 
-    // 데이터 없는 주제 제거
-    ALL_TOPICS.forEach(t => {
-      const tv = topicVotes[t.name];
-      if (tv.saju + tv.tarot === 0) delete topicVotes[t.name];
-    });
+      // 데이터 없는 주제 제거
+      ALL_TOPICS.forEach(t => {
+        const tv = topicVotes[t.name];
+        if (tv.saju + tv.tarot === 0) delete topicVotes[t.name];
+      });
+    } catch (e) {
+      console.error('[stats] listStats failed:', e);
+    }
 
     // Wave 3: 연령대 (birth_year 범위 필터)
     const now = new Date().getFullYear();
