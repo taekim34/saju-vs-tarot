@@ -481,6 +481,7 @@ body {
 
 .saju-cell-hanja {
   padding: 6px 2px;
+  position: relative;
 }
 
 .hanja-big {
@@ -494,10 +495,66 @@ body {
   opacity: 0.3;
 }
 
+.yinyang-mark {
+  font-size: 0.55rem;
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  opacity: 0.6;
+  font-weight: 700;
+}
+
 .saju-cell-label {
   font-size: 0.6rem;
   color: var(--color-text-dim);
   padding: 2px 0;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.saju-cell-rowlabel {
+  flex: 0 0 48px !important;
+  font-size: 0.5rem;
+  color: var(--color-text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+
+.saju-cell-sub {
+  font-size: 0.6rem;
+  color: var(--color-text);
+  padding: 3px 2px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.saju-cell-jijang {
+  font-size: 0.55rem;
+  letter-spacing: 1px;
+}
+
+/* 오행 색상 범례 */
+.saju-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.saju-legend-item {
+  font-size: 0.55rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.saju-legend-yy {
+  font-size: 0.55rem;
+  color: var(--color-text-dim);
+  padding: 1px 6px;
 }
 
 /* 오행별 색상 */
@@ -534,6 +591,71 @@ body {
   .saju-table {
     padding: 6px;
   }
+  .saju-cell-rowlabel {
+    flex: 0 0 36px !important;
+    font-size: 0.45rem;
+  }
+  .saju-cell-sub {
+    font-size: 0.5rem;
+  }
+  .saju-cell-jijang {
+    font-size: 0.45rem;
+  }
+}
+
+/* 분석 정보 패널 */
+.info-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.info-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-tag-label {
+  color: var(--color-text-dim);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.info-tag-value {
+  color: var(--color-text);
+}
+
+.info-tag-strength .info-tag-value {
+  color: #ce93d8;
+  font-weight: 700;
+}
+
+.info-tag-warn {
+  border-color: rgba(244, 67, 54, 0.3);
+}
+.info-tag-warn .info-tag-value {
+  color: #ef9a9a;
+}
+
+.info-tag-good {
+  border-color: rgba(76, 175, 80, 0.3);
+}
+.info-tag-good .info-tag-value {
+  color: #81c784;
+}
+
+.saju-info, .tarot-info {
+  margin: 0 2px;
 }
 
 .panel-tarot {
@@ -1154,6 +1276,40 @@ body {
   color: var(--color-text-dim);
   margin-top: 2px;
 }
+
+/* 타로 원소 뱃지 */
+.tarot-element-badge {
+  font-size: 0.55rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin: 4px auto 2px;
+  display: inline-block;
+}
+.tarot-el-fire { background: rgba(244, 67, 54, 0.2); color: #ef9a9a; }
+.tarot-el-water { background: rgba(33, 150, 243, 0.2); color: #90caf9; }
+.tarot-el-air { background: rgba(224, 224, 224, 0.2); color: #e0e0e0; }
+.tarot-el-earth { background: rgba(76, 175, 80, 0.2); color: #81c784; }
+
+/* 타로 패턴 요약 바 */
+.tarot-pattern-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  justify-content: center;
+}
+.tarot-pat-badge {
+  font-size: 0.55rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-text-dim);
+  font-weight: 600;
+}
+.tarot-pat-major { border: 1px solid rgba(156, 39, 176, 0.4); color: #ce93d8; }
+.tarot-pat-suit { border: 1px solid rgba(255, 193, 7, 0.3); }
+.tarot-pat-missing { opacity: 0.5; border: 1px dashed rgba(255, 255, 255, 0.2); }
+.tarot-pat-court { border: 1px solid rgba(255, 152, 0, 0.3); color: #ffcc80; }
 
 @media (max-width: 600px) {
   .card-position { font-size: 0.6rem; }

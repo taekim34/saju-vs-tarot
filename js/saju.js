@@ -633,6 +633,48 @@ const SajuEngine = (() => {
   }
 
   // ============================================================
+  // 12신살 — 일지 기준, 각 기둥 지지별 판정
+  // ============================================================
+
+  const TWELVE_SINSAL_NAMES = ['겁살','재살','천살','지살','년살','월살','망신살','장성살','반안살','역마살','육해살','화개살'];
+  const SINSAL_ORDER = ['巳','午','未','申','酉','戌','亥','子','丑','寅','卯','辰']; // 申子辰 그룹 기준 겁살→화개살 순서
+
+  // 삼합 그룹별 겁살 시작 지지 (SINSAL_ORDER 기준 오프셋)
+  const SINSAL_START = {
+    '申': 0, '子': 0, '辰': 0,  // 巳부터
+    '寅': 6, '午': 6, '戌': 6,  // 亥부터
+    '巳': 9, '酉': 9, '丑': 9,  // 寅부터
+    '亥': 3, '卯': 3, '未': 3   // 申부터
+  };
+
+  function calculateTwelveSinsal(pillars) {
+    const baseBranch = pillars.day.jiji; // 일지 기준
+    const startOffset = SINSAL_START[baseBranch];
+    if (startOffset === undefined) return {};
+
+    // 지지 → 신살 매핑 테이블 구축 (SINSAL_ORDER 사용)
+    const branchToSinsal = {};
+    for (let i = 0; i < 12; i++) {
+      const orderIdx = (startOffset + i) % 12;
+      branchToSinsal[SINSAL_ORDER[orderIdx]] = TWELVE_SINSAL_NAMES[i];
+    }
+
+    // 각 기둥 지지에 해당하는 신살
+    const result = {};
+    const positions = [
+      { key: 'year', branch: pillars.year.jiji },
+      { key: 'month', branch: pillars.month.jiji },
+      { key: 'day', branch: pillars.day.jiji }
+    ];
+    if (pillars.hour) positions.push({ key: 'hour', branch: pillars.hour.jiji });
+
+    positions.forEach(pos => {
+      result[pos.key] = branchToSinsal[pos.branch] || '';
+    });
+    return result;
+  }
+
+  // ============================================================
   // 헬퍼
   // ============================================================
 
@@ -693,6 +735,7 @@ const SajuEngine = (() => {
     const hap = checkHap(pillars);
     const seun = calculateSeun(dayMaster, pillars);
     const daeun = calculateDaeun(birthDate, gender, yearPillar, monthPillar);
+    const twelveSinsal = calculateTwelveSinsal(pillars);
 
     return {
       pillars,
@@ -705,6 +748,7 @@ const SajuEngine = (() => {
       jijangganDetail,
       tenGods,
       twelveStages,
+      twelveSinsal,
       strength,
       specialStars,
       chung,
@@ -804,5 +848,5 @@ const SajuEngine = (() => {
     return text;
   }
 
-  return { loadData, analyze };
+  return { loadData, analyze, CHEONGAN_YINYANG, JIJI_YINYANG, CHEONGAN_ELEMENT, JIJI_ELEMENT };
 })();
