@@ -356,6 +356,17 @@ const TarotEngine = (() => {
       text += '\n';
     });
 
+    // 퀸테센스(Quintessence) — 카드 숫자 합산 → 숨겨진 메이저 아르카나
+    const quintNames = ['바보','마법사','여사제','여황제','황제','교황','연인','전차','힘','은둔자','운명의 수레바퀴','정의','매달린 사람','죽음','절제','악마','탑','별','달','태양','심판','세계'];
+    let quintSum = drawResult.reading.reduce((sum, item) => {
+      const c = item.card;
+      if (c.id < 22) return sum + c.id;
+      const courtVal = { page: 11, knight: 12, queen: 13, king: 14 };
+      return sum + (courtVal[c.rank] || c.number || 0);
+    }, 0);
+    while (quintSum > 21) quintSum = String(quintSum).split('').reduce((a, d) => a + Number(d), 0);
+    text += `\n【퀸테센스】 카드 숫자 합 → ${quintNames[quintSum] || quintSum}(${quintSum}번) — 이 리딩의 숨겨진 본질\n`;
+
     // [T4] 메이저/마이너 비율
     if (drawResult.patterns) {
       const p = drawResult.patterns;

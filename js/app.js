@@ -682,9 +682,72 @@
       container.appendChild(createEl('p', 'reading-text', '해석을 불러오지 못했습니다.'));
       return;
     }
-    const lines = text.split('\n').filter(l => l.trim());
+
+    // 간단한 마크다운 → DOM 변환
+    const lines = text.split('\n');
+    let inList = false;
+    let listEl = null;
+
     lines.forEach(line => {
-      container.appendChild(createEl('p', 'reading-text text-reveal', line));
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (inList) { container.appendChild(listEl); inList = false; listEl = null; }
+        return;
+      }
+
+      // 리스트 아이템 (- 또는 * 으로 시작)
+      if (/^[-*]\s+/.test(trimmed)) {
+        if (!inList) { listEl = createEl('ul', 'reading-list'); inList = true; }
+        const li = createEl('li', 'reading-text text-reveal');
+        renderInlineMd(li, trimmed.replace(/^[-*]\s+/, ''));
+        listEl.appendChild(li);
+        return;
+      }
+
+      // 리스트 밖이면 리스트 종료
+      if (inList) { container.appendChild(listEl); inList = false; listEl = null; }
+
+      // # 제목 레벨
+      if (/^###\s+/.test(trimmed)) {
+        const h = createEl('h5', 'reading-heading reading-h3 text-reveal');
+        renderInlineMd(h, trimmed.replace(/^###\s+/, ''));
+        container.appendChild(h);
+        return;
+      }
+      if (/^##\s+/.test(trimmed)) {
+        const h = createEl('h4', 'reading-heading reading-h2 text-reveal');
+        renderInlineMd(h, trimmed.replace(/^##\s+/, ''));
+        container.appendChild(h);
+        return;
+      }
+      if (/^#\s+/.test(trimmed)) {
+        const h = createEl('h3', 'reading-heading reading-h1 text-reveal');
+        renderInlineMd(h, trimmed.replace(/^#\s+/, ''));
+        container.appendChild(h);
+        return;
+      }
+
+      // 일반 텍스트
+      const p = createEl('p', 'reading-text text-reveal');
+      renderInlineMd(p, trimmed);
+      container.appendChild(p);
+    });
+
+    if (inList && listEl) container.appendChild(listEl);
+  }
+
+  /** 인라인 마크다운: **볼드** → <strong> (XSS 안전: textContent + DOM 조합) */
+  function renderInlineMd(el, text) {
+    // **bold** 패턴을 분리하여 안전한 DOM 노드로 변환
+    const parts = text.split(/(\*\*.+?\*\*)/g);
+    parts.forEach(part => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const strong = document.createElement('strong');
+        strong.textContent = part.slice(2, -2);
+        el.appendChild(strong);
+      } else {
+        el.appendChild(document.createTextNode(part));
+      }
     });
   }
 

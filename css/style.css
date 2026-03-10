@@ -1056,6 +1056,43 @@ body {
   font-size: 0.92rem;
 }
 
+/* 리딩 마크다운 헤더 */
+.reading-heading {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.reading-h1 {
+  font-size: 1.1rem;
+  color: var(--color-accent, #ffd700);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+.reading-h2 {
+  font-size: 1rem;
+  color: var(--color-text);
+  opacity: 0.95;
+}
+
+.reading-h3 {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  opacity: 0.9;
+}
+
+/* 리딩 리스트 */
+.reading-list {
+  margin: 4px 0 8px 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.reading-list li {
+  margin-bottom: 4px;
+}
+
 /* 타로 카드 아이템 */
 .tarot-card-item {
   background: var(--color-tarot-glow);

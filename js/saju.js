@@ -236,7 +236,7 @@ const SajuEngine = (() => {
 
   function getDayPillar(year, month, day) {
     const jdn = toJDN(year, month, day);
-    const dayIdx = (Math.floor(jdn) + 49) % 60;
+    const dayIdx = (Math.round(jdn) + 49) % 60;
     const stemIdx = dayIdx % 10;
     const branchIdx = dayIdx % 12;
     return { cheongan: CHEONGAN[stemIdx], jiji: JIJI[branchIdx], stemIndex: stemIdx, branchIndex: branchIdx };
@@ -738,14 +738,19 @@ const SajuEngine = (() => {
       text += `시주: 미상\n`;
     }
 
-    text += `\n일간(나): ${dayMaster} (${CHEONGAN_ELEMENT[dayMaster]}, ${di.meaning})\n`;
+    // 절기 기준 생월 (조후 판단용)
+    const sajuMonth = pillars.month.sajuMonth;
+    const seasonMap = { 1: '초봄(인월)', 2: '봄(묘월)', 3: '늦봄(진월)', 4: '초여름(사월)', 5: '여름(오월)', 6: '늦여름(미월)', 7: '초가을(신월)', 8: '가을(유월)', 9: '늦가을(술월)', 10: '초겨울(해월)', 11: '겨울(자월)', 12: '늦겨울(축월)' };
+    text += `\n절기 생월: ${sajuMonth}월 — ${seasonMap[sajuMonth] || sajuMonth + '월'}\n`;
+    text += `일간(나): ${dayMaster} (${CHEONGAN_ELEMENT[dayMaster]}, ${di.meaning})\n`;
     text += `오행(표면): 목${elements['목']} 화${elements['화']} 토${elements['토']} 금${elements['금']} 수${elements['수']}\n`;
     text += `오행(지장간): 목${jijangganElements['목']} 화${jijangganElements['화']} 토${jijangganElements['토']} 금${jijangganElements['금']} 수${jijangganElements['수']}\n`;
     text += `신강/신약: ${strength}\n`;
 
-    // 십성 배치
+    // 십성 배치 (궁성 포함)
     const tenGods = calculateTenGods(dayMaster, pillars);
-    text += `십성: ${tenGods.map(t => `${t.position}=${t.tenGod}`).join(', ')}\n`;
+    const gungMap = { '년간': '조상궁', '년지': '조상궁', '월간': '부모궁/사회궁', '월지': '부모궁/사회궁', '일지': '배우자궁', '시간': '자녀궁', '시지': '자녀궁' };
+    text += `십성(궁성): ${tenGods.map(t => `${t.position}(${gungMap[t.position] || ''})=${t.tenGod}`).join(', ')}\n`;
 
     // 12운성
     if (twelveStages && twelveStages.length > 0) {
