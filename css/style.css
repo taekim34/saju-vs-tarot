@@ -868,6 +868,18 @@ body {
   margin-bottom: 8px;
 }
 
+.shared-topics-badge {
+  text-align: center;
+  padding: 8px 16px;
+  background: rgba(123, 94, 167, 0.08);
+  border: 1px solid rgba(123, 94, 167, 0.15);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
 .shared-question {
   text-align: center;
   font-size: 0.95rem;
@@ -1485,6 +1497,77 @@ body {
   font-size: 0.78rem;
   color: var(--color-text-dim);
   opacity: 0.7;
+}
+
+/* ===== 주제 선택 칩 ===== */
+.topic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.topic-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: 24px;
+  background: rgba(255,255,255,0.05);
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.topic-chip:hover {
+  border-color: #888;
+  background: rgba(255,255,255,0.1);
+}
+
+.topic-chip.selected {
+  border-color: var(--color-accent);
+  background: rgba(255,215,0,0.12);
+  color: var(--color-text);
+}
+
+.chip-order {
+  display: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.topic-chip.selected .chip-order {
+  display: inline-block;
+}
+
+/* ===== 주제별 질문 필드 ===== */
+.topic-questions {
+  margin-top: 4px;
+}
+
+.topic-q-field {
+  margin-bottom: 10px;
+}
+
+.topic-q-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-text-dim);
+  margin-bottom: 4px;
 }
 
 /* ===== 역대 전적 (통계) ===== */

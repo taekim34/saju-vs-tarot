@@ -2,19 +2,21 @@
  * 배틀 엔진 (battle.js)
  *
  * 3라운드 배틀 진행 + 투표 + 점수 계산 + 최종 승자 판정
+ * 주제는 사용자가 7개 중 3개를 선택 (선택 순서 = 배틀 순서)
  */
 
 const BattleEngine = (() => {
-  const TOPICS = ['연애운', '재물운', '종합운세'];
+  const DEFAULT_TOPICS = ['연애운', '재물운', '종합운세'];
   const TOTAL_ROUNDS = 3;
 
+  let topics = [...DEFAULT_TOPICS];  // 사용자 선택 주제 (동적)
   let currentRound = 0;
   let sajuResult = null;
-  let rounds = [];        // 라운드별 결과 저장
-  let votes = [];          // 라운드별 투표 저장
+  let rounds = [];
+  let votes = [];
   let isProcessing = false;
-  let userQuestion = '';   // U2: 자유 질문
-  let birthYear = null;    // U3: 시그니피케이터용
+  let topicQuestions = {};  // { '연애운': '질문', '직업운': '질문', ... }
+  let birthYear = null;
   let birthMonth = null;
   let birthDay = null;
   let gender = null;
@@ -22,7 +24,7 @@ const BattleEngine = (() => {
 
   /**
    * 배틀 초기화
-   * @param {object} userData - { year, month, day, gender, hour, minute }
+   * @param {object} userData - { year, month, day, gender, hour, minute, topics, questions }
    */
   function init(userData) {
     currentRound = 0;
@@ -30,21 +32,27 @@ const BattleEngine = (() => {
     votes = [];
     isProcessing = false;
 
-    // U2: 자유 질문 저장
-    userQuestion = userData.question || '';
+    // 동적 주제 설정 (없으면 기본 3개)
+    if (userData.topics && userData.topics.length === 3) {
+      topics = [...userData.topics];
+    } else {
+      topics = [...DEFAULT_TOPICS];
+    }
 
-    // U3: 시그니피케이터용 정보 저장
+    // 주제별 질문 저장
+    topicQuestions = userData.questions || {};
+
+    // 시그니피케이터용 정보 저장
     birthYear = userData.year;
     birthMonth = userData.month;
     birthDay = userData.day;
     gender = userData.gender;
 
-    // 사주 분석 (1회만) — saju.js는 "YYYY-MM-DD" 문자열과 "HH:MM" 문자열을 기대
+    // 사주 분석 (1회만)
     const birthDateStr = `${userData.year}-${String(userData.month).padStart(2, '0')}-${String(userData.day).padStart(2, '0')}`;
     const birthTimeStr = userData.hour != null ? `${String(userData.hour).padStart(2, '0')}:${String(userData.minute || 0).padStart(2, '0')}` : null;
     sajuResult = SajuEngine.analyze(birthDateStr, userData.gender, birthTimeStr);
 
-    // U3: 일간 오행 저장
     dayMasterElement = sajuResult.dayMasterElement || null;
 
     // 타로 덱 초기화 + 셔플
@@ -62,26 +70,28 @@ const BattleEngine = (() => {
     isProcessing = true;
     currentRound++;
 
-    const topic = TOPICS[currentRound - 1];
+    const topic = topics[currentRound - 1];
 
-    // U3: 시그니피케이터 계산 + 타로 드로우
+    // 시그니피케이터 계산 + 타로 드로우
     const significator = TarotEngine.getSignificator(birthYear, gender, topic, dayMasterElement);
     const tarotDraw = TarotEngine.drawForRound(currentRound, significator);
 
     // T7~T11: 타로 심화 분석
     const tarotAdvanced = TarotEngine.analyzeAdvanced(tarotDraw, birthYear, birthMonth, birthDay);
 
-    // U2: 질문은 항상 전달 — LLM이 주제와의 관련성을 판단하여 반영/무시
+    // 주제별 개별 질문 사용 — LLM이 관련성 판단
+    const roundQuestion = topicQuestions[topic] || '';
+
     // AI 해석 요청 (병렬)
     const [sajuReading, tarotReading] = await Promise.all([
-      AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, userQuestion),
-      AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion, tarotAdvanced)
+      AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, roundQuestion),
+      AIInterpreter.getTarotReading(tarotDraw, topic, roundQuestion, tarotAdvanced)
     ]);
 
     const roundData = {
       round: currentRound,
       topic,
-      question: userQuestion || null,  // U2: 사용자 질문 기록
+      question: roundQuestion || null,
       saju: {
         result: sajuResult,
         reading: sajuReading
@@ -116,14 +126,11 @@ const BattleEngine = (() => {
    * @returns {Promise<object>} 최종 결과
    */
   async function getFinalResult() {
-    // 투표 집계
     const sajuVotes = votes.filter(v => v === 'saju').length;
     const tarotVotes = votes.filter(v => v === 'tarot').length;
 
-    // AI 최종 판정
     const aiJudgment = await AIInterpreter.getFinalJudgment(rounds, votes);
 
-    // 종합 점수 계산 (투표 60% + AI 40%)
     const voteScore = {
       saju: sajuVotes / TOTAL_ROUNDS,
       tarot: tarotVotes / TOTAL_ROUNDS
@@ -145,7 +152,7 @@ const BattleEngine = (() => {
     } else if (finalScore.tarot > finalScore.saju) {
       winner = 'tarot';
     } else {
-      winner = aiJudgment.winner; // 동점 시 AI 판정 우선
+      winner = aiJudgment.winner;
     }
 
     return {
@@ -154,13 +161,11 @@ const BattleEngine = (() => {
       voteDetail: { saju: sajuVotes, tarot: tarotVotes },
       aiJudgment,
       rounds,
+      topics: [...topics],
       message: aiJudgment.message
     };
   }
 
-  /**
-   * 현재 진행 상태
-   */
   function getStatus() {
     return {
       currentRound,
@@ -177,7 +182,7 @@ const BattleEngine = (() => {
     vote,
     getFinalResult,
     getStatus,
-    TOPICS,
+    getTopics: () => [...topics],
     TOTAL_ROUNDS
   };
 })();

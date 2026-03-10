@@ -146,7 +146,7 @@ const StatsManager = (() => {
 
     // Per-round
     const roundCard = createEl('div', 'stats-card');
-    roundCard.appendChild(createEl('h3', 'stats-card-title', '라운드별 투표'));
+    roundCard.appendChild(createEl('h3', 'stats-card-title', '주제별 투표'));
     TOPICS.forEach(topic => {
       const rv = stats.roundVotes[topic];
       if (!rv) return;

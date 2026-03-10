@@ -58,8 +58,11 @@
   const leapMonthWrap = $('#leap-month-wrap');
   const inputLeapMonth = $('#input-leap-month');
 
-  // U2: 자유 질문
-  const inputQuestion = $('#input-question');
+  // 주제 선택
+  const topicChipsContainer = $('#topic-chips');
+  const topicError = $('#topic-error');
+  const topicQuestionsWrap = $('#topic-questions');
+  const topicQuestionFields = $('#topic-question-fields');
 
   // 상태
   let selectedGender = null;
@@ -67,6 +70,7 @@
   let calendarType = 'solar';    // U1: 'solar' | 'lunar'
   let isLeapMonth = false;       // U1: 윤달 여부
   let currentUserData = null;    // 공유용 사용자 데이터 보존
+  let selectedTopics = [];       // [{id, name, emoji, placeholder}, ...]
 
   // ===== HTML 이스케이프 =====
   function escapeHtml(text) {
@@ -83,9 +87,95 @@
     return el;
   }
 
+  // ===== 주제 선택 =====
+  function renderTopicChips() {
+    topicChipsContainer.textContent = '';
+    const topics = window.__TOPICS__ || [];
+    const defaultIds = ['love', 'wealth', 'general'];
+
+    topics.forEach(t => {
+      const chip = createEl('div', 'topic-chip');
+      chip.dataset.topicId = t.id;
+
+      const order = createEl('span', 'chip-order', '');
+      chip.appendChild(order);
+      chip.appendChild(createEl('span', 'chip-emoji', t.emoji));
+      chip.appendChild(createEl('span', 'chip-name', t.name));
+
+      chip.addEventListener('click', () => toggleTopic(t, chip));
+      topicChipsContainer.appendChild(chip);
+
+      if (defaultIds.includes(t.id)) {
+        toggleTopic(t, chip);
+      }
+    });
+  }
+
+  function toggleTopic(topic, chipEl) {
+    const idx = selectedTopics.findIndex(t => t.id === topic.id);
+    if (idx >= 0) {
+      selectedTopics.splice(idx, 1);
+      chipEl.classList.remove('selected');
+      topicError.style.display = 'none';
+    } else {
+      if (selectedTopics.length >= 3) {
+        topicError.textContent = '3개까지만 선택할 수 있어요! 먼저 하나를 해제하세요.';
+        topicError.style.display = '';
+        return;
+      }
+      selectedTopics.push(topic);
+      chipEl.classList.add('selected');
+      topicError.style.display = 'none';
+    }
+    updateChipOrders();
+    updateTopicQuestions();
+    validateForm();
+  }
+
+  function updateChipOrders() {
+    $$('.topic-chip').forEach(chip => {
+      const order = chip.querySelector('.chip-order');
+      const idx = selectedTopics.findIndex(t => t.id === chip.dataset.topicId);
+      if (idx >= 0) {
+        order.textContent = idx + 1;
+        chip.classList.add('selected');
+      } else {
+        order.textContent = '';
+        chip.classList.remove('selected');
+      }
+    });
+  }
+
+  function updateTopicQuestions() {
+    topicQuestionFields.textContent = '';
+
+    if (selectedTopics.length === 0) {
+      topicQuestionsWrap.style.display = 'none';
+      return;
+    }
+
+    topicQuestionsWrap.style.display = '';
+    selectedTopics.forEach(t => {
+      const field = createEl('div', 'topic-q-field');
+      const label = createEl('div', 'topic-q-label');
+      label.appendChild(createEl('span', '', `${t.emoji} ${t.name}`));
+      field.appendChild(label);
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'form-input topic-q-input';
+      input.placeholder = t.placeholder;
+      input.maxLength = 100;
+      input.dataset.topicId = t.id;
+      field.appendChild(input);
+      topicQuestionFields.appendChild(field);
+    });
+  }
+
   // ===== 초기화 =====
   async function initialize() {
     populateSelects();
+    renderTopicChips();
     bindEvents();
 
     // .env → config 로드 대기 + 사주/타로/음력 데이터 병렬 로드
@@ -182,11 +272,26 @@
         container.appendChild(chartSection);
       }
 
+      // 선택된 주제 표시
+      const sharedTopics = data.topics || ['연애운', '재물운', '종합운세'];
+      if (sharedTopics.length > 0) {
+        const topicBadge = createEl('div', 'shared-topics-badge',
+          sharedTopics.map(t => {
+            const def = (window.__TOPICS__ || []).find(d => d.name === t);
+            return def ? `${def.emoji} ${def.name}` : t;
+          }).join('  '));
+        container.appendChild(topicBadge);
+      }
+
       // 라운드별 설명 텍스트
       const topicDesc = {
-        '\uC5F0\uC560\uC6B4': '사랑과 인간관계에 대한 운세를 동양과 서양이 각각 풀이했어요',
-        '\uC7AC\uBB3C\uC6B4': '돈과 재물에 관한 흐름을 두 관점에서 비교했어요',
-        '\uC885\uD569\uC6B4\uC138': '올해의 전체적인 운세를 종합적으로 판단했어요'
+        '연애운': '사랑과 인간관계에 대한 운세를 동양과 서양이 각각 풀이했어요',
+        '재물운': '돈과 재물에 관한 흐름을 두 관점에서 비교했어요',
+        '종합운세': '올해의 전체적인 운세를 종합적으로 판단했어요',
+        '직업운': '커리어와 직업적 발전을 두 관점에서 분석했어요',
+        '건강운': '건강과 에너지 밸런스를 동양과 서양이 각각 풀이했어요',
+        '학업운': '학업과 시험 운세를 두 관점에서 비교했어요',
+        '대인관계': '사회적 관계와 인연을 동양과 서양이 각각 풀이했어요'
       };
 
       // 라운드별 — 양쪽 모두 표시
@@ -448,7 +553,8 @@
 
   // ===== 폼 유효성 검사 =====
   function validateForm() {
-    const isValid = inputYear.value && inputMonth.value && inputDay.value && selectedGender;
+    const isValid = inputYear.value && inputMonth.value && inputDay.value
+      && selectedGender && selectedTopics.length === 3;
     btnBattle.disabled = !isValid;
     inputError.textContent = '';
     return isValid;
@@ -493,8 +599,16 @@
       day = solar.day;
     }
 
-    // U2: 자유 질문 수집
-    const question = inputQuestion ? inputQuestion.value.trim() : '';
+    // 주제별 질문 수집
+    const topicNames = selectedTopics.map(t => t.name);
+    const topicQuestions = {};
+    $$('.topic-q-input').forEach(input => {
+      const val = input.value.trim();
+      if (val) {
+        const t = selectedTopics.find(s => s.id === input.dataset.topicId);
+        if (t) topicQuestions[t.name] = val;
+      }
+    });
 
     const userData = {
       year,
@@ -503,7 +617,8 @@
       gender: selectedGender,
       hour: noTimeSelected ? null : (inputHour.value ? parseInt(inputHour.value) : null),
       minute: noTimeSelected ? null : (inputMinute.value ? parseInt(inputMinute.value) : null),
-      question  // U2: 자유 질문 전달
+      topics: topicNames,
+      questions: topicQuestions
     };
 
     currentUserData = userData;
@@ -556,7 +671,7 @@
     const nextRound = status.currentRound + 1;
     roundBadge.textContent = `ROUND ${nextRound}`;
     roundBadge.className = 'round-badge round-enter';
-    roundTopic.textContent = BattleEngine.TOPICS[nextRound - 1];
+    roundTopic.textContent = BattleEngine.getTopics()[nextRound - 1];
 
     $$('.progress-dot').forEach((dot, i) => {
       dot.classList.toggle('active', i === nextRound - 1);
@@ -693,7 +808,9 @@
       scores: result.scores,
       voteDetail: result.voteDetail,
       birth_info: currentUserData ? `${currentUserData.year}-${currentUserData.month}-${currentUserData.day}-${currentUserData.gender}${currentUserData.hour != null ? `-${currentUserData.hour}-${currentUserData.minute || 0}` : ''}` : '',
-      question: currentUserData?.question || '',
+      question: '',
+      topics: result.topics || currentUserData?.topics || [],
+      questions: currentUserData?.questions || {},
       judgment: result.message || result.aiJudgment?.reason || '',
       // 사주 분석 결과 (1회만 — 전 라운드 공통)
       sajuResult: sajuRes ? {
@@ -743,13 +860,20 @@
     ShareManager.getShareUrl().catch(e => console.warn('자동 저장 실패:', e));
 
     // 통계 저장: 경량 레코드 (카운트 쿼리용)
+    const battleTopics = result.topics || currentUserData?.topics || [];
+    const topicVotes = {};
+    (result.rounds || []).forEach(r => {
+      if (r.topic && r.vote) topicVotes[r.topic] = r.vote;
+    });
     BkendClient.saveStat({
       winner: result.winner,
       gender: currentUserData?.gender || '',
       birth_year: currentUserData?.year || 0,
       r1_vote: result.rounds[0]?.vote || '',
       r2_vote: result.rounds[1]?.vote || '',
-      r3_vote: result.rounds[2]?.vote || ''
+      r3_vote: result.rounds[2]?.vote || '',
+      topics: battleTopics,
+      topic_votes: topicVotes
     }).catch(e => console.warn('통계 저장 실패:', e));
   }
 
@@ -1390,8 +1514,9 @@
     if (leapMonthWrap) leapMonthWrap.style.display = 'none';
     if (inputLeapMonth) inputLeapMonth.checked = false;
 
-    // U2: 질문 초기화
-    if (inputQuestion) inputQuestion.value = '';
+    // 주제 선택 + 질문 초기화
+    selectedTopics = [];
+    renderTopicChips();
   }
 
   // ===== 유틸 =====

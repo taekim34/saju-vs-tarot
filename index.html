@@ -109,12 +109,19 @@
         </div>
       </div>
 
-      <!-- U2: 자유 질문 입력 -->
+      <!-- 주제 선택 (3개 필수) -->
       <div class="form-group">
-        <label class="form-label">궁금한 점 <span class="optional">선택</span></label>
-        <input id="input-question" type="text" class="form-input"
-          placeholder="예: 이직을 고민 중인데 어떨까요?" maxlength="100">
+        <label class="form-label">배틀 주제 선택 <span class="required">*3개 선택</span></label>
+        <p class="form-hint">선택한 순서대로 배틀이 진행됩니다</p>
+        <div id="topic-chips" class="topic-chips"></div>
+        <div id="topic-error" class="error-message" style="display:none;"></div>
+      </div>
+
+      <!-- 주제별 질문 입력 (선택) -->
+      <div id="topic-questions" class="topic-questions" style="display:none;">
+        <label class="form-label">주제별 고민 <span class="optional">선택</span></label>
         <p class="form-hint">구체적인 질문을 남기면 AI가 맞춤 해석을 해드려요</p>
+        <div id="topic-question-fields"></div>
       </div>
 
       <div id="input-error" class="error-message"></div>

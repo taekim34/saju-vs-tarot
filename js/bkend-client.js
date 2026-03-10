@@ -28,7 +28,10 @@ const BkendClient = (() => {
         rounds: data.rounds || [],
         birth_info: data.birth_info,
         question: data.question || '',
-        judgment: data.judgment || ''
+        judgment: data.judgment || '',
+        topics: data.topics || [],
+        questions: data.questions || {},
+        sajuResult: data.sajuResult || null
       })
     });
 
@@ -94,7 +97,9 @@ const BkendClient = (() => {
         birth_year: data.birth_year || 0,
         r1_vote: data.r1_vote || '',
         r2_vote: data.r2_vote || '',
-        r3_vote: data.r3_vote || ''
+        r3_vote: data.r3_vote || '',
+        topics: data.topics || [],
+        topic_votes: data.topic_votes || {}
       })
     });
 
