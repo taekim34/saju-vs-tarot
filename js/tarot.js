@@ -326,7 +326,7 @@ const TarotEngine = (() => {
   // AI 프롬프트용 요약 (전면 강화)
   // ============================================================
 
-  function buildSummary(drawResult) {
+  function buildSummary(drawResult, advancedData) {
     let text = `스프레드: ${drawResult.spreadName}\n`;
     text += `주제: ${drawResult.topic}\n`;
 
@@ -422,6 +422,34 @@ const TarotEngine = (() => {
       }
     }
 
+    // T7~T11: 심화 분석 데이터 (있을 때만)
+    if (advancedData) {
+      if (advancedData.birthCard) {
+        text += `\n【탄생 카드】 ${advancedData.birthCard.description}\n`;
+      }
+      if (advancedData.astroLinks && advancedData.astroLinks.length > 0) {
+        text += `\n【점성술 대응】\n`;
+        advancedData.astroLinks.forEach(a => {
+          text += `  ${a.card} → ${a.astro}(${a.type}): ${a.meaning}\n`;
+        });
+      }
+      if (advancedData.reversals && advancedData.reversals.length > 0) {
+        text += `\n【역방향 심화】\n`;
+        advancedData.reversals.forEach(r => {
+          text += `  ${r.card}: ${r.analysis.desc}\n`;
+        });
+      }
+      if (advancedData.combos && advancedData.combos.length > 0) {
+        text += `\n【특별 카드 조합】\n`;
+        advancedData.combos.forEach(c => {
+          text += `  ${c.name}: ${c.meaning}\n`;
+        });
+      }
+      if (advancedData.timing) {
+        text += `\n【타이밍 암시】 ${advancedData.timing.desc}, 예상 속도: ${advancedData.timing.speed}\n`;
+      }
+    }
+
     return text;
   }
 
@@ -484,6 +512,177 @@ const TarotEngine = (() => {
     };
   }
 
+  // ============================================================
+  // [T7] 탄생 카드 (Birth Card) — 생년월일에서 개인 메이저 아르카나 계산
+  // ============================================================
+
+  const MAJOR_ARCANA_NAMES = ['바보','마법사','여사제','여황제','황제','교황','연인','전차','힘','은둔자','운명의 수레바퀴','정의','매달린 사람','죽음','절제','악마','탑','별','달','태양','심판','세계'];
+
+  function calculateBirthCard(birthYear, birthMonth, birthDay) {
+    // 생년월일 각 자릿수 합산
+    const digits = String(birthYear) + String(birthMonth).padStart(2, '0') + String(birthDay).padStart(2, '0');
+    let sum = digits.split('').reduce((a, d) => a + Number(d), 0);
+    // 22 이상이면 재합산
+    while (sum > 22) sum = String(sum).split('').reduce((a, d) => a + Number(d), 0);
+    // 22 → 바보(0) + 황제(4)
+    if (sum === 22) sum = 0;
+
+    const personality = sum; // 성격 카드
+    // 영혼 카드: 성격 카드를 다시 한 자릿수로
+    let soul = sum;
+    if (soul > 9) soul = String(soul).split('').reduce((a, d) => a + Number(d), 0);
+
+    return {
+      personality: { number: personality, name: MAJOR_ARCANA_NAMES[personality] || personality },
+      soul: { number: soul, name: MAJOR_ARCANA_NAMES[soul] || soul },
+      isSame: personality === soul,
+      description: personality === soul
+        ? MAJOR_ARCANA_NAMES[personality] + ' — 성격과 영혼이 일치하는 강력한 에너지'
+        : MAJOR_ARCANA_NAMES[personality] + '(성격) + ' + MAJOR_ARCANA_NAMES[soul] + '(영혼) — 외면과 내면의 이중 에너지'
+    };
+  }
+
+  // ============================================================
+  // [T8] 점성술 대응표 — 메이저 아르카나 ↔ 별자리/행성
+  // ============================================================
+
+  const ASTRO_CORRESPONDENCE = {
+    0: { astro: '천왕성', type: '행성', meaning: '직관, 자유, 혁신의 에너지' },
+    1: { astro: '수성', type: '행성', meaning: '소통, 지성, 기민함' },
+    2: { astro: '달', type: '행성', meaning: '직관, 무의식, 신비' },
+    3: { astro: '금성', type: '행성', meaning: '풍요, 아름다움, 감각' },
+    4: { astro: '양자리', type: '별자리', meaning: '리더십, 주도권, 권위' },
+    5: { astro: '황소자리', type: '별자리', meaning: '전통, 가르침, 영적 지도' },
+    6: { astro: '쌍둥이자리', type: '별자리', meaning: '소통, 선택, 이중성' },
+    7: { astro: '게자리', type: '별자리', meaning: '보호, 전진, 감정의 갑옷' },
+    8: { astro: '사자자리', type: '별자리', meaning: '용기, 자신감, 내면의 힘' },
+    9: { astro: '처녀자리', type: '별자리', meaning: '분석, 내면 탐구, 지혜' },
+    10: { astro: '목성', type: '행성', meaning: '행운, 순환, 확장' },
+    11: { astro: '천칭자리', type: '별자리', meaning: '균형, 공정, 조화' },
+    12: { astro: '해왕성', type: '행성', meaning: '희생, 변환, 새로운 관점' },
+    13: { astro: '전갈자리', type: '별자리', meaning: '변환, 재생, 끝과 시작' },
+    14: { astro: '궁수자리', type: '별자리', meaning: '균형, 절제, 높은 목표' },
+    15: { astro: '염소자리', type: '별자리', meaning: '물질, 유혹, 속박과 해방' },
+    16: { astro: '화성', type: '행성', meaning: '파괴적 변화, 해방, 깨달음' },
+    17: { astro: '물병자리', type: '별자리', meaning: '희망, 영감, 우주적 연결' },
+    18: { astro: '물고기자리', type: '별자리', meaning: '환상, 불안, 숨겨진 진실' },
+    19: { astro: '태양', type: '행성', meaning: '생명력, 성공, 기쁨' },
+    20: { astro: '명왕성', type: '행성', meaning: '부활, 심판, 근본적 변환' },
+    21: { astro: '토성', type: '행성', meaning: '완성, 세계, 달성' }
+  };
+
+  // ============================================================
+  // [T9] 역방향 심화 분석 — 단순 반대가 아닌 3가지 해석
+  // ============================================================
+
+  const REVERSAL_TYPES = {
+    blockage: '차단 — 에너지가 막혀 발현되지 못함',
+    shadow: '그림자 — 내면에 숨겨진 부정적 측면 노출',
+    excess: '과잉 — 에너지가 너무 강해 균형 상실'
+  };
+
+  function analyzeReversal(card) {
+    if (!card.isReversed) return null;
+    const id = card.id;
+    // 메이저 아르카나: 번호 기반 유형 결정
+    if (id < 22) {
+      if ([0, 1, 7, 11, 14, 17, 19].includes(id)) return { type: 'blockage', desc: REVERSAL_TYPES.blockage };
+      if ([2, 5, 9, 12, 13, 15, 18].includes(id)) return { type: 'shadow', desc: REVERSAL_TYPES.shadow };
+      return { type: 'excess', desc: REVERSAL_TYPES.excess };
+    }
+    // 마이너: rank 기반
+    if (card.rank === 'king' || card.rank === 'queen') return { type: 'excess', desc: REVERSAL_TYPES.excess };
+    if (card.rank === 'page' || card.rank === 'knight') return { type: 'blockage', desc: REVERSAL_TYPES.blockage };
+    const num = card.number || 0;
+    if (num <= 3) return { type: 'blockage', desc: REVERSAL_TYPES.blockage };
+    if (num <= 7) return { type: 'shadow', desc: REVERSAL_TYPES.shadow };
+    return { type: 'excess', desc: REVERSAL_TYPES.excess };
+  }
+
+  // ============================================================
+  // [T10] 카드 조합 감지 — 특별한 의미의 카드 쌍
+  // ============================================================
+
+  const CARD_COMBOS = [
+    { cards: [6, 15], name: '선택의 시련', meaning: '연인+악마 — 유혹과 진정한 사랑 사이의 갈등' },
+    { cards: [2, 18], name: '직관의 심화', meaning: '여사제+달 — 무의식의 메시지가 매우 강력함' },
+    { cards: [16, 13], name: '완전한 변환', meaning: '탑+죽음 — 근본적 파괴와 재탄생의 에너지' },
+    { cards: [19, 17], name: '축복의 빛', meaning: '태양+별 — 희망이 현실이 되는 강력한 긍정' },
+    { cards: [10, 21], name: '운명의 완성', meaning: '운명의수레바퀴+세계 — 큰 순환이 완성되는 시기' },
+    { cards: [0, 21], name: '여행의 완성', meaning: '바보+세계 — 바보의 여정이 완성되는 순간' },
+    { cards: [1, 8], name: '의지의 힘', meaning: '마법사+힘 — 내면과 외면의 힘이 결합' },
+    { cards: [3, 4], name: '완전한 균형', meaning: '여황제+황제 — 수용과 주도의 완벽한 조화' },
+    { cards: [11, 20], name: '궁극의 심판', meaning: '정의+심판 — 과거의 행위에 대한 결정적 평가' },
+    { cards: [9, 12], name: '영적 각성', meaning: '은둔자+매달린사람 — 깊은 내면 탐구를 통한 깨달음' },
+    { cards: [7, 19], name: '승리의 확신', meaning: '전차+태양 — 목표를 향한 강력한 추진과 성공' },
+    { cards: [14, 17], name: '영적 치유', meaning: '절제+별 — 마음의 상처가 서서히 치유되는 시기' }
+  ];
+
+  function detectCombos(cards) {
+    const majorIds = cards.filter(c => c.id < 22).map(c => c.id);
+    const found = [];
+    CARD_COMBOS.forEach(combo => {
+      if (combo.cards.every(id => majorIds.includes(id))) {
+        found.push(combo);
+      }
+    });
+    return found;
+  }
+
+  // ============================================================
+  // [T11] 타이밍 지표 — 수트별 시간대 암시
+  // ============================================================
+
+  const SUIT_TIMING = {
+    wands: { season: '봄', speed: '빠름 (수 주)', desc: '완드 — 봄의 에너지, 빠르게 진행' },
+    cups: { season: '여름', speed: '중간 (수 주~수 개월)', desc: '컵 — 여름의 에너지, 감정이 무르익는 시간' },
+    swords: { season: '가을', speed: '빠름 (즉시~수 일)', desc: '소드 — 가을의 에너지, 결단이 빠름' },
+    pentacles: { season: '겨울', speed: '느림 (수 개월~1년)', desc: '펜타클 — 겨울의 에너지, 천천히 결실' }
+  };
+
+  function analyzeTimingFromCards(cards) {
+    const suitCounts = {};
+    cards.filter(c => c.id >= 22 && c.suit).forEach(c => {
+      suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1;
+    });
+    const dominant = Object.entries(suitCounts).sort((a, b) => b[1] - a[1])[0];
+    if (!dominant) return null;
+    const timing = SUIT_TIMING[dominant[0]];
+    return timing ? { suit: dominant[0], count: dominant[1], ...timing } : null;
+  }
+
+  // analyzePatterns 확장 — T7~T11 결과를 drawForRound에 통합
+  function analyzeAdvanced(drawResult, birthYear, birthMonth, birthDay) {
+    const cards = drawResult.reading.map(r => r.card);
+
+    // T9: 역방향 심화
+    const reversals = drawResult.reading.map(r => ({
+      position: r.position,
+      card: r.card.korean || r.card.name,
+      analysis: analyzeReversal(r.card)
+    })).filter(r => r.analysis);
+
+    // T10: 카드 조합
+    const combos = detectCombos(cards);
+
+    // T11: 타이밍
+    const timing = analyzeTimingFromCards(cards);
+
+    // T8: 점성술 대응 (메이저 카드만)
+    const astroLinks = cards.filter(c => c.id < 22).map(c => ({
+      card: c.korean || c.name,
+      id: c.id,
+      ...ASTRO_CORRESPONDENCE[c.id]
+    }));
+
+    // T7: 탄생 카드
+    const birthCard = (birthYear && birthMonth && birthDay)
+      ? calculateBirthCard(birthYear, birthMonth, birthDay)
+      : null;
+
+    return { reversals, combos, timing, astroLinks, birthCard };
+  }
+
   return {
     loadData,
     initDeck,
@@ -491,6 +690,9 @@ const TarotEngine = (() => {
     buildSummary,
     getRemainingCount,
     getSignificator,
-    SPREADS
+    analyzeAdvanced,
+    calculateBirthCard,
+    SPREADS,
+    SUIT_ENERGY
   };
 })();

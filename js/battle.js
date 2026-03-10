@@ -15,6 +15,8 @@ const BattleEngine = (() => {
   let isProcessing = false;
   let userQuestion = '';   // U2: 자유 질문
   let birthYear = null;    // U3: 시그니피케이터용
+  let birthMonth = null;
+  let birthDay = null;
   let gender = null;
   let dayMasterElement = null;
 
@@ -33,6 +35,8 @@ const BattleEngine = (() => {
 
     // U3: 시그니피케이터용 정보 저장
     birthYear = userData.year;
+    birthMonth = userData.month;
+    birthDay = userData.day;
     gender = userData.gender;
 
     // 사주 분석 (1회만) — saju.js는 "YYYY-MM-DD" 문자열과 "HH:MM" 문자열을 기대
@@ -64,10 +68,13 @@ const BattleEngine = (() => {
     const significator = TarotEngine.getSignificator(birthYear, gender, topic, dayMasterElement);
     const tarotDraw = TarotEngine.drawForRound(currentRound, significator);
 
+    // T7~T11: 타로 심화 분석
+    const tarotAdvanced = TarotEngine.analyzeAdvanced(tarotDraw, birthYear, birthMonth, birthDay);
+
     // AI 해석 요청 (병렬) + U2: 질문 전달
     const [sajuReading, tarotReading] = await Promise.all([
       AIInterpreter.getSajuReading(sajuResult, topic, sajuResult.gender, userQuestion),
-      AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion)
+      AIInterpreter.getTarotReading(tarotDraw, topic, userQuestion, tarotAdvanced)
     ]);
 
     const roundData = {

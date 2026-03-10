@@ -474,7 +474,7 @@ body {
 }
 
 .saju-cell-tengod {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   color: var(--color-text-dim);
   padding: 2px 0;
 }
@@ -496,7 +496,7 @@ body {
 }
 
 .yinyang-mark {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   position: absolute;
   top: 2px;
   right: 4px;
@@ -505,7 +505,7 @@ body {
 }
 
 .saju-cell-label {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--color-text-dim);
   padding: 2px 0;
   font-weight: 700;
@@ -513,8 +513,8 @@ body {
 }
 
 .saju-cell-rowlabel {
-  flex: 0 0 48px !important;
-  font-size: 0.5rem;
+  flex: 0 0 52px !important;
+  font-size: 0.65rem;
   color: var(--color-text-dim);
   display: flex;
   align-items: center;
@@ -524,14 +524,14 @@ body {
 }
 
 .saju-cell-sub {
-  font-size: 0.6rem;
+  font-size: 0.72rem;
   color: var(--color-text);
   padding: 3px 2px;
   background: rgba(255, 255, 255, 0.03);
 }
 
 .saju-cell-jijang {
-  font-size: 0.55rem;
+  font-size: 0.68rem;
   letter-spacing: 1px;
 }
 
@@ -545,7 +545,7 @@ body {
 }
 
 .saju-legend-item {
-  font-size: 0.55rem;
+  font-size: 0.68rem;
   padding: 1px 6px;
   border-radius: 3px;
   font-weight: 600;
@@ -592,14 +592,14 @@ body {
     padding: 6px;
   }
   .saju-cell-rowlabel {
-    flex: 0 0 36px !important;
-    font-size: 0.45rem;
+    flex: 0 0 40px !important;
+    font-size: 0.55rem;
   }
   .saju-cell-sub {
-    font-size: 0.5rem;
+    font-size: 0.62rem;
   }
   .saju-cell-jijang {
-    font-size: 0.45rem;
+    font-size: 0.58rem;
   }
 }
 
@@ -618,8 +618,8 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.6rem;
-  padding: 2px 6px;
+  font-size: 0.75rem;
+  padding: 3px 8px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -679,12 +679,14 @@ body {
 
 /* 오행 생극 관계도 */
 .ohang-graph {
-  margin: 6px auto;
+  margin: 12px auto;
   text-align: center;
 }
 .ohang-svg {
-  width: 150px;
-  height: 150px;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 1;
 }
 
 .panel-tarot {
@@ -1328,8 +1330,8 @@ body {
   justify-content: center;
 }
 .tarot-pat-badge {
-  font-size: 0.55rem;
-  padding: 2px 8px;
+  font-size: 0.72rem;
+  padding: 3px 10px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-text-dim);

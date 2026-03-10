@@ -520,6 +520,9 @@
     battlePanels.style.display = 'none';
     battleVote.style.display = 'none';
 
+    // 라운드 로딩 시 정적 텍스트 숨기고 캐릭터 멘트만 표시
+    $('.loading-text').style.display = 'none';
+
     // 로딩 캐릭터 멘트 시작
     startLoadingMessages();
 
@@ -554,7 +557,7 @@
 
     // 타로 패널 — 카드 + 분석정보 + AI 해석
     renderTarotCards(tarotCards, roundData.tarot.draw);
-    renderTarotInfo(tarotInfo, roundData.tarot.draw);
+    renderTarotInfo(tarotInfo, roundData.tarot.draw, currentUserData);
     renderReading(tarotReading, roundData.tarot.reading.text);
     tarotReading.closest('.battle-panel').className = 'battle-panel panel-tarot panel-slide-right';
 
@@ -587,7 +590,10 @@
     battleLoading.style.display = 'block';
     battlePanels.style.display = 'none';
     battleVote.style.display = 'none';
-    $('.loading-text').textContent = '최종 판정 중...';
+    stopLoadingMessages();
+    const loadingText = $('.loading-text');
+    loadingText.textContent = '최종 판정 중...';
+    loadingText.style.display = '';
 
     const result = await BattleEngine.getFinalResult();
 
@@ -807,20 +813,20 @@
       // 메이저/마이너 비율
       if (p.majorMinor) {
         patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-major',
-          'M' + p.majorMinor.majorCount + ' / m' + p.majorMinor.minorCount));
+          '메이저 ' + p.majorMinor.majorCount + ' / 마이너 ' + p.majorMinor.minorCount));
       }
       // 우세 수트
       if (p.suits && p.suits.dominant && p.suits.dominant.length > 0) {
         p.suits.dominant.forEach(s => {
           patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-suit',
-            (ELEMENT_EMOJI[s.element] || '') + ' ' + s.suit + ' ' + s.count + '장'));
+            (ELEMENT_EMOJI[s.element] || '') + ' ' + (s.suitKorean || s.suit) + ' ' + s.count + '장'));
         });
       }
       // 부재 원소
       if (p.suits && p.suits.missing && p.suits.missing.length > 0) {
         p.suits.missing.forEach(s => {
           patBar.appendChild(createEl('span', 'tarot-pat-badge tarot-pat-missing',
-            '⊘ ' + s.suit));
+            '⊘ ' + s.element));
         });
       }
       // 코트 카드
@@ -1085,7 +1091,7 @@
     }
     if (sajuResult.daeun && sajuResult.daeun.current) {
       const d = sajuResult.daeun.current;
-      addTag(uRow, '현재대운', d.stem + d.branch + ' (' + d.startAge + '~' + (d.startAge + 9) + '세)');
+      addTag(uRow, '현재대운', d.stem + d.branch + ' (' + d.ageStart + '~' + d.ageEnd + '세)');
     }
     wrap.appendChild(uRow);
 
@@ -1106,8 +1112,8 @@
 
   // 오행 생극 관계도 SVG
   function renderOhangGraph(myElement, elements) {
-    const size = 160;
-    const cx = size / 2, cy = size / 2, r = 50;
+    const size = 240;
+    const cx = size / 2, cy = size / 2, r = 80;
     const ohang = ['목', '화', '토', '금', '수'];
     const ohangHanja = { '목': '木', '화': '火', '토': '土', '금': '金', '수': '水' };
     const colors = { '목': '#81c784', '화': '#ef9a9a', '토': '#ffd54f', '금': '#e0e0e0', '수': '#90caf9' };
@@ -1128,14 +1134,14 @@
     // 상생 화살표 (원형, 얇은 선)
     ohang.forEach(el => {
       const from = pos[el], to = pos[sangSaeng[el]];
-      svg += '<line x1="' + from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '" stroke="#555" stroke-width="0.8" stroke-dasharray="3,2"/>';
+      svg += '<line x1="' + from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '" stroke="#555" stroke-width="1.2" stroke-dasharray="4,3"/>';
     });
 
     // 상극 화살표 (별모양, 빨간 점선)
     ohang.forEach(el => {
       const from = pos[el], to = pos[sangGeuk[el]];
       if (el === myElement) {
-        svg += '<line x1="' + from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '" stroke="rgba(244,67,54,0.4)" stroke-width="1" stroke-dasharray="2,2"/>';
+        svg += '<line x1="' + from.x + '" y1="' + from.y + '" x2="' + to.x + '" y2="' + to.y + '" stroke="rgba(244,67,54,0.5)" stroke-width="1.5" stroke-dasharray="3,3"/>';
       }
     });
 
@@ -1144,17 +1150,17 @@
       const p = pos[el];
       const isMe = el === myElement;
       const count = elements ? (elements[el] || 0) : 0;
-      const nodeR = isMe ? 18 : 12 + Math.min(count, 4) * 1.5;
-      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + nodeR + '" fill="' + colors[el] + '" opacity="' + (isMe ? '0.9' : '0.5') + '" stroke="' + (isMe ? '#fff' : 'none') + '" stroke-width="' + (isMe ? '2' : '0') + '"/>';
-      svg += '<text x="' + p.x + '" y="' + (p.y + 1) + '" text-anchor="middle" dominant-baseline="central" fill="#000" font-size="' + (isMe ? '11' : '9') + '" font-weight="' + (isMe ? '900' : '600') + '">' + ohangHanja[el] + '</text>';
+      const nodeR = isMe ? 26 : 18 + Math.min(count, 4) * 2;
+      svg += '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + nodeR + '" fill="' + colors[el] + '" opacity="' + (isMe ? '0.9' : '0.5') + '" stroke="' + (isMe ? '#fff' : 'none') + '" stroke-width="' + (isMe ? '2.5' : '0') + '"/>';
+      svg += '<text x="' + p.x + '" y="' + (p.y + 1) + '" text-anchor="middle" dominant-baseline="central" fill="#000" font-size="' + (isMe ? '16' : '13') + '" font-weight="' + (isMe ? '900' : '600') + '">' + ohangHanja[el] + '</text>';
       // 개수 표시
       if (count > 0) {
-        svg += '<text x="' + p.x + '" y="' + (p.y + (isMe ? 12 : 10)) + '" text-anchor="middle" fill="' + colors[el] + '" font-size="7">' + count + '</text>';
+        svg += '<text x="' + p.x + '" y="' + (p.y + (isMe ? 17 : 14)) + '" text-anchor="middle" fill="' + colors[el] + '" font-size="10">' + count + '</text>';
       }
     });
 
     // 범례
-    svg += '<text x="' + cx + '" y="' + (size - 4) + '" text-anchor="middle" fill="#888" font-size="6">── 상생  - - 상극(나→)</text>';
+    svg += '<text x="' + cx + '" y="' + (size - 6) + '" text-anchor="middle" fill="#888" font-size="10">── 상생  - - 상극(나→)</text>';
 
     svg += '</svg>';
 
@@ -1164,34 +1170,113 @@
   }
 
   // ===== 타로 분석 정보 패널 =====
-  function renderTarotInfo(container, drawResult) {
+  function renderTarotInfo(container, drawResult, userData) {
     container.textContent = '';
     if (!drawResult || !drawResult.patterns) return;
 
     const wrap = createEl('div', 'info-panel');
     const p = drawResult.patterns;
 
+    // T7: 탄생 카드 (사주의 일간에 해당)
+    const adv = (typeof TarotEngine.analyzeAdvanced === 'function' && userData)
+      ? TarotEngine.analyzeAdvanced(drawResult, userData.year, userData.month, userData.day)
+      : null;
+
+    if (adv && adv.birthCard) {
+      const topRow = createEl('div', 'info-row');
+      addTag(topRow, '탄생카드', adv.birthCard.description, 'info-tag-strength');
+      wrap.appendChild(topRow);
+    }
+
+    // 메이저/마이너 비율
+    if (p.majorMinor) {
+      const mmRow = createEl('div', 'info-row');
+      addTag(mmRow, '메이저/마이너', 'M' + p.majorMinor.majorCount + ' / m' + p.majorMinor.minorCount);
+      addTag(mmRow, '해석', p.majorMinor.message);
+      wrap.appendChild(mmRow);
+    }
+
+    // 수트 에너지 분포 (사주의 오행 분포에 해당)
+    if (p.suits) {
+      const suitRow = createEl('div', 'info-row');
+      if (p.suits.dominant && p.suits.dominant.length > 0) {
+        p.suits.dominant.forEach(s => {
+          addTag(suitRow, s.element, (s.suitKorean || s.suit) + ' ' + s.count + '장', 'info-tag-hot');
+        });
+      }
+      if (p.suits.missing && p.suits.missing.length > 0) {
+        p.suits.missing.forEach(s => {
+          addTag(suitRow, s.element + '부재', '에너지 약함', 'info-tag-dim');
+        });
+      }
+      if (suitRow.childNodes.length > 0) wrap.appendChild(suitRow);
+    }
+
     // 원소 상성 (Elemental Dignity)
     if (p.elementalDignity && p.elementalDignity.length > 0) {
+      const edRow = createEl('div', 'info-row');
       p.elementalDignity.forEach(ed => {
-        const tag = createEl('div', 'info-tag');
-        tag.appendChild(createEl('span', 'info-tag-label', '원소상성'));
-        tag.appendChild(createEl('span', 'info-tag-value',
-          ed.card1 + '(' + ed.element1 + ') ↔ ' + ed.card2 + '(' + ed.element2 + '): ' + ed.description));
-        wrap.appendChild(tag);
+        const cls = ed.relation === 'friendly' ? 'info-tag-good'
+          : ed.relation === 'hostile' ? 'info-tag-warn' : '';
+        addTag(edRow, ed.card1 + '↔' + ed.card2, ed.element1 + '/' + ed.element2 + ' ' + ed.description, cls);
       });
+      wrap.appendChild(edRow);
+    }
+
+    // T8: 점성술 대응
+    if (adv && adv.astroLinks && adv.astroLinks.length > 0) {
+      const astRow = createEl('div', 'info-row');
+      adv.astroLinks.forEach(a => {
+        addTag(astRow, a.card, a.astro + '(' + a.type + ') — ' + a.meaning);
+      });
+      wrap.appendChild(astRow);
+    }
+
+    // T9: 역방향 심화
+    if (adv && adv.reversals && adv.reversals.length > 0) {
+      const revRow = createEl('div', 'info-row');
+      adv.reversals.forEach(r => {
+        addTag(revRow, r.card + '(역)', r.analysis.desc, 'info-tag-warn');
+      });
+      wrap.appendChild(revRow);
+    }
+
+    // T10: 카드 조합
+    if (adv && adv.combos && adv.combos.length > 0) {
+      const comboRow = createEl('div', 'info-row');
+      adv.combos.forEach(c => {
+        addTag(comboRow, c.name, c.meaning, 'info-tag-good');
+      });
+      wrap.appendChild(comboRow);
+    }
+
+    // T11: 타이밍 지표
+    if (adv && adv.timing) {
+      const tRow = createEl('div', 'info-row');
+      addTag(tRow, '시기암시', adv.timing.desc);
+      addTag(tRow, '속도', adv.timing.speed);
+      wrap.appendChild(tRow);
     }
 
     // 숫자 패턴
     if (p.numbers && p.numbers.length > 0) {
-      const tag = createEl('div', 'info-tag');
-      tag.appendChild(createEl('span', 'info-tag-label', '숫자패턴'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        p.numbers.map(n => n.message).join(' / ')));
-      wrap.appendChild(tag);
+      const numRow = createEl('div', 'info-row');
+      p.numbers.forEach(n => {
+        addTag(numRow, '숫자' + (n.rankKorean || n.rank), n.count + '장 — ' + (n.message || ''));
+      });
+      wrap.appendChild(numRow);
     }
 
-    // 퀸테센스 (buildSummary에서 계산하므로 여기서 직접 계산)
+    // 코트 카드
+    if (p.courtCards && p.courtCards.length > 0) {
+      const ctRow = createEl('div', 'info-row');
+      p.courtCards.forEach(cc => {
+        addTag(ctRow, cc.name, cc.meaning);
+      });
+      wrap.appendChild(ctRow);
+    }
+
+    // 퀸테센스
     if (drawResult.reading) {
       const QUINT_NAMES = ['바보','마법사','여사제','여황제','황제','교황','연인','전차','힘','은둔자','운명의수레바퀴','정의','매달린사람','죽음','절제','악마','탑','별','달','태양','심판','세계'];
       let quintSum = drawResult.reading.reduce((sum, item) => {
@@ -1201,11 +1286,9 @@
         return sum + (courtVal[c.rank] || c.number || 0);
       }, 0);
       while (quintSum > 21) quintSum = String(quintSum).split('').reduce((a, d) => a + Number(d), 0);
-      const tag = createEl('div', 'info-tag info-tag-good');
-      tag.appendChild(createEl('span', 'info-tag-label', '퀸테센스'));
-      tag.appendChild(createEl('span', 'info-tag-value',
-        (QUINT_NAMES[quintSum] || quintSum) + '(' + quintSum + '번) — 이 리딩의 숨겨진 본질'));
-      wrap.appendChild(tag);
+      const qRow = createEl('div', 'info-row');
+      addTag(qRow, '퀸테센스', (QUINT_NAMES[quintSum] || quintSum) + '(' + quintSum + '번) — 리딩의 숨겨진 본질', 'info-tag-good');
+      wrap.appendChild(qRow);
     }
 
     container.appendChild(wrap);

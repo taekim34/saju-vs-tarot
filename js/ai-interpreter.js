@@ -205,7 +205,7 @@ ${sajuResult.summary}
   // [P2 + P4] 타로 해석 — 강화된 프롬프트
   // ============================================================
 
-  async function getTarotReading(tarotDrawResult, topic, question = '') {
+  async function getTarotReading(tarotDrawResult, topic, question = '', advancedData = null) {
     const currentYear = new Date().getFullYear();
     const topicEmoji = { '연애운': '💞', '재물운': '💰', '종합운세': '🔮' };
     const hasQuestion = !!question;
@@ -215,7 +215,7 @@ ${sajuResult.summary}
 현재 ${currentYear}년 기준으로 해석합니다.
 
 【활용할 분석 데이터】
-메이저/마이너 비율, 수트 패턴, 부재 원소, 숫자 패턴, 원소 상성, 코트 카드
+메이저/마이너 비율, 수트 패턴, 부재 원소, 숫자 패턴, 원소 상성, 코트 카드, 탄생 카드, 점성술 대응, 역방향 심화(차단/그림자/과잉), 카드 조합, 타이밍 암시
 → 카드 데이터를 근거로 삼되, 타로를 모르는 사람도 바로 이해할 수 있게 풀어서 설명하세요.
 
 【전문가 수준 해석 — 타로 대가로서 판단하여 적용하세요】
@@ -288,7 +288,7 @@ ${hasQuestion ? `# ${topicEmoji[topic] || '🔮'} ${topic} — "${question}" 카
 1500~2500자로 충분히 길고 상세하게 답변하세요. 짧게 끊지 말고, 각 섹션을 풍부하게 풀어주세요.
 마크다운 문법(#, ##, **, -, 이모지)을 적극 활용하세요.`;
 
-    const tarotSummary = TarotEngine.buildSummary(tarotDrawResult);
+    const tarotSummary = TarotEngine.buildSummary(tarotDrawResult, advancedData);
 
     let userPrompt = `아래 타로 카드 스프레드와 패턴 분석 데이터를 바탕으로 ${topic}에 대해 해석해주세요. (${currentYear}년 기준)
 
