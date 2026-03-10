@@ -672,7 +672,10 @@ const SajuEngine = (() => {
     let hourPillar = null;
     if (birthTime) {
       const [h, m] = birthTime.split(':').map(Number);
-      hourPillar = getHourPillar(dayPillar.stemIndex, h, m);
+      // 지역시(진태양시) 보정: 한국 표준시(135°E) → 서울 기준(127°E) ≈ -30분
+      const corrected = h * 60 + m - 30;
+      const adjMin = corrected >= 0 ? corrected : corrected + 1440;
+      hourPillar = getHourPillar(dayPillar.stemIndex, Math.floor(adjMin / 60), adjMin % 60);
     }
 
     const pillars = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
