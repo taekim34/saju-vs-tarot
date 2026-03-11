@@ -143,21 +143,6 @@ const BkendClient = (() => {
     return pagination?.total || 0;
   }
 
-  /**
-   * 통계 레코드 목록 조회 (클라이언트 집계용)
-   */
-  async function listStats(limit = 100, offset = 0) {
-    const { apiKey, baseUrl } = getConfig();
-    const response = await fetch(`${baseUrl}/v1/data/battle_stats?limit=${limit}&offset=${offset}`, {
-      headers: { 'X-API-Key': apiKey }
-    });
 
-    if (!response.ok) return [];
-
-    const result = await response.json();
-    const data = result.data || result;
-    return data.items || data || [];
-  }
-
-  return { saveResult, getResult, listResults, saveStat, countStats, listStats };
+  return { saveResult, getResult, listResults, saveStat, countStats };
 })();
