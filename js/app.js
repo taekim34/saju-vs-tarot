@@ -271,11 +271,6 @@
           chartSection.appendChild(infoContainer);
         }
 
-        // 오행 생극 관계도
-        if (sajuRes.dayMasterElement && sajuRes.elements) {
-          chartSection.appendChild(renderOhangGraph(sajuRes.dayMasterElement, sajuRes.elements));
-        }
-
         container.appendChild(chartSection);
       }
 
