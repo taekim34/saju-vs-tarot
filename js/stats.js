@@ -48,7 +48,7 @@ const StatsManager = (() => {
     // topic_votes 객체 + 레거시 r1/r2/r3_vote 모두 처리
     const topicVotes = {};
     try {
-      const allStats = await BkendClient.listStats(500);
+      const allStats = await BkendClient.listStats(100);
       console.log('[stats] listStats returned', allStats.length, 'records');
       ALL_TOPICS.forEach(t => {
         topicVotes[t.name] = { saju: 0, tarot: 0, emoji: t.emoji };

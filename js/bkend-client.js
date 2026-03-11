@@ -146,7 +146,7 @@ const BkendClient = (() => {
   /**
    * 통계 레코드 목록 조회 (클라이언트 집계용)
    */
-  async function listStats(limit = 500, offset = 0) {
+  async function listStats(limit = 100, offset = 0) {
     const { apiKey, baseUrl } = getConfig();
     const response = await fetch(`${baseUrl}/v1/data/battle_stats?limit=${limit}&offset=${offset}`, {
       headers: { 'X-API-Key': apiKey }
